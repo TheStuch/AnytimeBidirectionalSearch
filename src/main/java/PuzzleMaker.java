@@ -34,6 +34,16 @@ public class PuzzleMaker {
         return matrix;
     }
 
+    public int[][] generateGoal(){
+        int[][] matrix = new int[M][N];
+        int val = 0;
+        for(int i = 0; i < M; i++){
+            for(int j = 0; j < N; j++){
+                matrix[i][j] = val++;            }
+        }
+        return matrix;
+    }
+
     private boolean isSolvable(List<Integer> list) {
         int inversions = 0;
         int zeroLocation = -1;
@@ -52,10 +62,30 @@ public class PuzzleMaker {
         if(N % 2 == 1){ //if N is odd
             return inversions % 2 == 0;
         }
-        if((M - 1 - (zeroLocation/N)) % 2 == 0){ //empty cell is even distance from bottom
+        if((M - (zeroLocation/N)) % 2 == 0){ //empty cell is even distance from bottom
             return inversions % 2 == 1;
         }
         return inversions % 2 == 0;
+    }
+
+    public static int[] findZeroLocation(int[][] matrix){
+        for(int i = 0; i < matrix.length; i++){
+            for(int j = 0; j < matrix[i].length; j++){
+                if(matrix[i][j] == 0){
+                    return new int[]{i, j};
+                }
+            }
+        }
+        throw new IllegalArgumentException("matrix has no zero");
+        //return null;
+    }
+    public static void printMatrix(int[][] mat) {
+        for (int[] row : mat) {
+            for (int val : row) {
+                System.out.print(val + " ");
+            }
+            System.out.println();
+        }
     }
 
 }

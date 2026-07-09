@@ -114,7 +114,8 @@ class StandardBnB{
 
             // If final state is reached, print the solution path
             if (min.cost == 0) {
-               return printPath(min);
+                //printPath(min);
+               return min.level;
             }
 
             // Generate all possible child nodes
@@ -154,11 +155,12 @@ class StandardBnB{
         int n = 3;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
-        initial = new int[][]{
+       /* initial = new int[][]{
                 {2, 0, 5},
                 {1, 8, 7},
                 {6, 4, 3}
         };
+        */
 
 
         // Solvable Final configuration

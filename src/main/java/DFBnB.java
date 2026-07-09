@@ -11,6 +11,7 @@ class DFBnB{
     long timeLimit = Long.MAX_VALUE;
     Map<Node, Node> seen = new HashMap<>();
     int[][] goal;
+    Stack<Node> stack;
 
     public DFBnB(int m, int n){
         M = m;
@@ -120,22 +121,35 @@ class DFBnB{
         }
     };
 
+    public int publicSolve(int[][] initial, int x, int y, int[][] goal, long timeLimit){
+        Node ans = solve(initial, x, y, goal, timeLimit);
+        if(ans == null){
+            return -1;
+        }
+        return ans.level;
+    }
+
     // Function to solve the puzzle using Branch and Bound
-    Node solve(int[][] initial, int x, int y, int[][] goal, long timeLimit) {
+    private Node solve(int[][] initial, int x, int y, int[][] goal, long timeLimit) {
         this.timeLimit = timeLimit;
         this.startTime = System.nanoTime();
         this.goal = goal;
         Node root = new Node(initial, x, y, 0, null);
-        findShortestPathToEnd(root);
+        stack = new Stack<>();
+        stack.push(root);
+        while (!stack.isEmpty() && System.nanoTime() - startTime < timeLimit){
+            Node current = stack.pop();
+            findShortestPathToEnd(current);
+        }
+        if(answer != null){
+            //System.out.println("shortest: " + answer.level);
+        }
         return answer;
     }
 
     //recursively find shortest path from current to goal
     private void findShortestPathToEnd(Node current) {
         if(current.f >= limit){ //base case: prune
-            return;
-        }
-        if(System.nanoTime() - startTime > timeLimit){ //anytime
             return;
         }
         if(Arrays.deepEquals(current.mat, goal)){ //base case: found solution
@@ -164,12 +178,12 @@ class DFBnB{
                 }
             }
         }
-        children.sort(comp);
+        children.sort(comp.reversed());
         for(Node c : children){
-            if(System.nanoTime() - startTime >= timeLimit || current.f >= limit){
-                return;
+            if(current.f >= limit){
+                continue;
             }
-            findShortestPathToEnd(c);
+            stack.push(c);
         }
     }
 
@@ -177,9 +191,9 @@ class DFBnB{
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 3;
-        int n = 3;
-        long time = 60000000000L;
+        int m = 4;
+        int n = 4;
+        long time = 20000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
         /*
