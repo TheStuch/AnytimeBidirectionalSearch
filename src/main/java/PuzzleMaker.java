@@ -21,10 +21,11 @@ public class PuzzleMaker {
         for(int i = 0; i < M*N; i++){
             list.add(i);
         }
-        do {
+        int[][] matrix = null;
+        while(matrix == null){
             Collections.shuffle(list);
-        } while (!isSolvable(list));
-        int[][] matrix = new int[M][N];
+            matrix = makeSolvable(list);
+        }
         int index = 0;
         for(int i = 0; i < M; i++){
             for(int j = 0; j < N; j++){
@@ -36,36 +37,59 @@ public class PuzzleMaker {
 
     public int[][] generateGoal(){
         int[][] matrix = new int[M][N];
-        int val = 0;
+        int val = 1;
         for(int i = 0; i < M; i++){
             for(int j = 0; j < N; j++){
                 matrix[i][j] = val++;            }
         }
+        matrix[M-1][N-1] = 0;
         return matrix;
     }
 
-    private boolean isSolvable(List<Integer> list) {
+    //returns the list as a matrix, if solvable
+    //if unsolvable, returns null
+    private int[][] makeSolvable(List<Integer> list) {
         int inversions = 0;
-        int zeroLocation = -1;
+        int zeroLocation = 0;
         for(int i = 0; i < list.size(); i++){
             int curr = list.get(i);
             if(curr == 0){
-                zeroLocation = i;
                 continue;
             }
             for(int j = i + 1; j < list.size(); j++){
-                if(list.get(j) != 0 && curr > j){
+                if(list.get(j) != 0 && curr > list.get(j)){
                     inversions++;
                 }
             }
         }
+        int index = 0;
+        int[][] matrix = new int[M][N];
+        for (int i = 0; i < M; i++){
+            for(int j = 0; j < N; j++){
+                matrix[i][j] = list.get(index++);
+                if(matrix[i][j] == 0){
+                    zeroLocation = M - i;
+                }
+            }
+        }
+        //System.out.println("list version " + list);
+        //System.out.println("Matrix version: " + Arrays.deepToString(matrix));
         if(N % 2 == 1){ //if N is odd
-            return inversions % 2 == 0;
+            if(inversions % 2 == 0){
+                //System.out.println("N is odd and hase even inversions");
+                return matrix;
+            }
+            return null;
         }
-        if((M - (zeroLocation/N)) % 2 == 0){ //empty cell is even distance from bottom
-            return inversions % 2 == 1;
+        if(zeroLocation % 2 == 1 && inversions % 2 == 0){ //empty cell is odd distance from bottom
+            //System.out.println("N is even, 0 on odd row, and has even inversions");
+            return matrix;
         }
-        return inversions % 2 == 0;
+        if(zeroLocation % 2 == 0 && inversions % 2 == 1){
+            //System.out.println("N is even, 0 on even row, and has odd inversions");
+            return matrix;
+        }
+        return null;
     }
 
     public static int[] findZeroLocation(int[][] matrix){

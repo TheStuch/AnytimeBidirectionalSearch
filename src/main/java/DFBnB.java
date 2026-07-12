@@ -82,7 +82,7 @@ class DFBnB{
         for (int i = 0; i < M; i++) {
             for (int j = 0; j < N; j++) {
 
-                int val = mat[i][j];
+                int val = mat[i][j] - 1;
 
                 // Skip the blank tile
                 if (val == 0) continue;
@@ -191,8 +191,8 @@ class DFBnB{
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 4;
-        int n = 4;
+        int m = 2;
+        int n = 3;
         long time = 20000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
@@ -206,12 +206,7 @@ class DFBnB{
 
 
         // Solvable Final configuration
-        int[][] goal = new int[m][n];
-        int val = 0;
-        for(int i = 0; i < goal.length; i++){
-            for(int j = 0; j < n; j++){
-                goal[i][j] = val++;            }
-        }
+        int[][] goal = pm.generateGoal();
 
         // Blank tile coordinates in initial configuration
         int x = -1, y = -1;

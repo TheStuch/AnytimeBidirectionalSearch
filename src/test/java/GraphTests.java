@@ -1,4 +1,7 @@
 import org.junit.jupiter.api.*;
+
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.*;
 public class GraphTests {
 
@@ -7,6 +10,7 @@ public class GraphTests {
         int N = 3;
         PuzzleMaker maker = new PuzzleMaker(N);
         int[][] input = maker.generatePuzzle();
+        //System.out.println(Arrays.deepToString(input));
         int[] zeroSpot = PuzzleMaker.findZeroLocation(input);
         int[][] goal = maker.generateGoal();
         StandardBnB normal = new StandardBnB(N);
