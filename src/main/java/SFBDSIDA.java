@@ -179,7 +179,7 @@ class SFBDSIDA{
     };
 
     // Function to solve the puzzle using Branch and Bound
-    private int solve(int[][] initial) {
+    public int solve(int[][] initial) {
         int[] startZero = PuzzleMaker.findZeroLocation(initial);
         int[] endZero = PuzzleMaker.findZeroLocation(goal);
         this.initial = initial;
