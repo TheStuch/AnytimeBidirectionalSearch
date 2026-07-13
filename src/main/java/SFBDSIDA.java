@@ -207,7 +207,7 @@ class SFBDSIDA{
         //current.print();
         if(Arrays.deepEquals(current.start, current.end)){ //base case: found solution
             answer = current;
-            printPath(answer, null);
+            //printPath(answer, null);
             return;
         }
         expanded++;
@@ -274,6 +274,17 @@ class SFBDSIDA{
                 stack.add(child);
             }
         }
+    }
+    public int getExpanded(){
+        return expanded;
+    }
+
+    public void printAnswer(){
+        if(answer == null){
+            System.out.println("no answer has been found yet");
+            return;
+        }
+        printPath(answer, null);
     }
 
 

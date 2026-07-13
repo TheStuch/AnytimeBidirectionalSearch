@@ -79,4 +79,76 @@ public class GraphTests {
             }
         }
     }
+
+    @Test
+    public void testingSFBDSOn4x4(){
+        int N = 4;
+        PuzzleMaker pm = new PuzzleMaker(N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        long startTime = System.nanoTime();
+        SFBDSIDA solver = new SFBDSIDA(N);
+        int result = solver.solve(initial);
+        long time = (System.nanoTime() - startTime) / 1000000000L;
+        solver.printAnswer();
+        System.out.println("Shortest path length found: " + result);
+        System.out.println("Nodes expanded: " + solver.getExpanded());
+        System.out.println("Time taken: " + time + " seconds");
+    }
+
+    @Test
+    public void testingJIL1On4x4(){
+        int N = 4;
+        PuzzleMaker pm = new PuzzleMaker(N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        long startTime = System.nanoTime();
+        SingleFrontierHeuristicJump solver = new SingleFrontierHeuristicJump(N);
+        int result = solver.solve(initial);
+        long time = (System.nanoTime() - startTime) / 1000000000L;
+        solver.printAnswer();
+        System.out.println("Shortest path length found: " + result);
+        System.out.println("Nodes expanded: " + solver.getExpanded());
+        System.out.println("Time taken: " + time + " seconds");
+    }
+
+    @Test
+    public void compareSFBDSHeuristics4x4(){
+        int N = 4;
+        PuzzleMaker pm = new PuzzleMaker(N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        long startTime = System.nanoTime();
+        SFBDSIDA bf = new SFBDSIDA(N);
+        int result1 = bf.solve(initial);
+        long time1 = (System.nanoTime() - startTime) / 1000000000L;
+        System.out.println("Branching factor results:");
+        System.out.println("Shortest path length found: " + result1);
+        System.out.println("Nodes expanded: " + bf.getExpanded());
+        System.out.println("Time taken: " + time1 + " seconds");
+        startTime = System.nanoTime();
+        SingleFrontierHeuristicJump jil = new SingleFrontierHeuristicJump(N);
+        int result2 = jil.solve(initial);
+        long time2 = (System.nanoTime() - startTime) / 1000000000L;
+        System.out.println("\nJIL(1) results:");
+        System.out.println("Shortest path length found: " + result2);
+        System.out.println("Nodes expanded: " + jil.getExpanded());
+        System.out.println("Time taken: " + time2 + " seconds");
+    }
+
+    @Test
+    public void testingJIL1On5x5(){
+        int N = 5;
+        PuzzleMaker pm = new PuzzleMaker(N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        long startTime = System.nanoTime();
+        SingleFrontierHeuristicJump solver = new SingleFrontierHeuristicJump(N);
+        int result = solver.solve(initial);
+        long time = (System.nanoTime() - startTime) / 1000000000L;
+        solver.printAnswer();
+        System.out.println("Shortest path length found: " + result);
+        System.out.println("Nodes expanded: " + solver.getExpanded());
+        System.out.println("Time taken: " + time + " seconds");
+    }
 }

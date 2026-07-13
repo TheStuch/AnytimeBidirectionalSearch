@@ -147,7 +147,7 @@ class SingleFrontierHeuristicJump{
     }
 
     // Print path from root node to destination node
-    static void printPath(Node root, List<int[][]> path) {
+    public static void printPath(Node root, List<int[][]> path) {
         if (root == null) {
             System.out.println();
             for (int[][] matrix : path) {
@@ -207,7 +207,7 @@ class SingleFrontierHeuristicJump{
         //current.print();
         if(Arrays.deepEquals(current.start, current.end)){ //base case: found solution
             answer = current;
-            printPath(answer, null);
+            //printPath(answer, null);
             return;
         }
         expanded++;
@@ -290,6 +290,18 @@ class SingleFrontierHeuristicJump{
         return sum / size;
     }
 
+    public int getExpanded(){
+        return expanded;
+    }
+
+    public void printAnswer(){
+        if(answer == null){
+            System.out.println("no answer has been found yet");
+            return;
+        }
+        printPath(answer, null);
+    }
+
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
@@ -307,7 +319,6 @@ class SingleFrontierHeuristicJump{
         printMatrix(initial);
         long startTime = System.nanoTime();
         SingleFrontierHeuristicJump solver = new SingleFrontierHeuristicJump(m, n);
-
         solver.solve(initial);
         solver.printPath(solver.answer, null);
         System.out.println("\nShortest Path length found: " + solver.limit);
