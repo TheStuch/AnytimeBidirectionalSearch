@@ -21,7 +21,7 @@ public class GraphTests {
             System.out.println("Standard BnB found path of length " + stdResult);
         }
         DFBnB anytime = new DFBnB(N);
-        int anytimeResult = anytime.publicSolve(input, zeroSpot[0], zeroSpot[1], goal, 30000000000L);
+        int anytimeResult = anytime.solve(input, 30000000000L);
         PuzzleMaker.printMatrix(input);
 
         if(anytimeResult == -1){
@@ -113,6 +113,38 @@ public class GraphTests {
     }
 
     @Test
+    public void testingJIL1On3x3(){
+        int N = 3;
+        PuzzleMaker pm = new PuzzleMaker(N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        long startTime = System.nanoTime();
+        SingleFrontierHeuristicJump solver = new SingleFrontierHeuristicJump(N);
+        int result = solver.solve(initial);
+        long time = (System.nanoTime() - startTime) / 1000000000L;
+        solver.printAnswer();
+        System.out.println("Shortest path length found: " + result);
+        System.out.println("Nodes expanded: " + solver.getExpanded());
+        System.out.println("Time taken: " + time + " seconds");
+    }
+
+    @Test
+    public void compareSFBDSHeuristics3x3(){
+        int N = 3;
+        for (int i = 0; i < 5; i++){
+            PuzzleMaker pm = new PuzzleMaker(N);
+            int[][] initial = pm.generatePuzzle();
+            PuzzleMaker.printMatrix(initial);
+            SFBDSIDA bf = new SFBDSIDA(N);
+            int result1 = bf.solve(initial);
+            SingleFrontierHeuristicJump jil = new SingleFrontierHeuristicJump(N);
+            int result2 = jil.solve(initial);
+            assertEquals(result1, result2);
+            System.out.println();
+        }
+    }
+
+    @Test
     public void compareSFBDSHeuristics4x4(){
         int N = 4;
         PuzzleMaker pm = new PuzzleMaker(N);
@@ -134,6 +166,37 @@ public class GraphTests {
         System.out.println("Shortest path length found: " + result2);
         System.out.println("Nodes expanded: " + jil.getExpanded());
         System.out.println("Time taken: " + time2 + " seconds");
+    }
+
+    @Test
+    public void anytimeOptimalityTest3x3(){
+        int M = 3;
+        int N = 3;
+        int runs = 15;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            SingleFrontierHeuristicJump jil = new SingleFrontierHeuristicJump(M, N);
+            int expected = jil.solve(initial);
+            DFBnB bnb = new DFBnB(M, N);
+            int actual = bnb.solve(initial);
+            assertEquals(expected, actual);
+        }
+    }
+
+    @Test
+    public void anytimeOptimalityTest3x4(){
+        int M = 3;
+        int N = 4;
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            PuzzleMaker.printMatrix(initial);
+            SingleFrontierHeuristicJump jil = new SingleFrontierHeuristicJump(M, N);
+            int expected = jil.solve(initial);
+            System.out.println("JIL got " + expected);
+            DFBnB bnb = new DFBnB(M, N);
+            int actual = bnb.solve(initial);
+            assertEquals(expected, actual);
     }
 
     @Test

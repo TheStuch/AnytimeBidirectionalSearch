@@ -85,7 +85,7 @@ class DFBnB{
                 int val = mat[i][j] - 1;
 
                 // Skip the blank tile
-                if (val == 0) continue;
+                if (val == -1) continue;
 
                 // Compute the tile's goal position
                 int goalX = val / N;
@@ -114,6 +114,18 @@ class DFBnB{
         System.out.println();
     }
 
+    public void printPath(){
+        if(answer == null){
+            System.out.println("No answer was found");
+            return;
+        }
+        printPath(answer);
+    }
+
+    public int getExpanded(){
+        return expanded;
+    }
+
     // Custom comparator for priority queue
     Comparator<Node> comp = new Comparator<Node>() {
         public int compare(Node lhs, Node rhs) {
@@ -121,6 +133,20 @@ class DFBnB{
         }
     };
 
+    //solve for optimality without time limit
+    public int solve(int[][] initial){
+        return solve(initial, Long.MAX_VALUE);
+    }
+
+    //find best answer within time limit
+    public int solve(int[][] initial, long timeLimit){
+        int[] zeroLoc = PuzzleMaker.findZeroLocation(initial);
+        Node ans = solve(initial, zeroLoc[0], zeroLoc[1], PuzzleMaker.generateGoal(M, N), timeLimit);
+        if(ans == null){
+            return -1;
+        }
+        return ans.level;
+    }
     public int publicSolve(int[][] initial, int x, int y, int[][] goal, long timeLimit){
         Node ans = solve(initial, x, y, goal, timeLimit);
         if(ans == null){
@@ -180,10 +206,9 @@ class DFBnB{
         }
         children.sort(comp.reversed());
         for(Node c : children){
-            if(current.f >= limit){
-                continue;
+            if(c.f < limit){
+                stack.push(c);
             }
-            stack.push(c);
         }
     }
 
@@ -191,7 +216,7 @@ class DFBnB{
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 2;
+        int m = 3;
         int n = 3;
         long time = 20000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);

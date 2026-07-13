@@ -45,6 +45,17 @@ public class PuzzleMaker {
         matrix[M-1][N-1] = 0;
         return matrix;
     }
+    public static int[][] generateGoal(int m, int n){
+        int[][] matrix = new int[m][n];
+        int val = 1;
+        for(int i = 0; i < m; i++){
+            for(int j = 0; j < n; j++){
+                matrix[i][j] = val++;            }
+        }
+        matrix[m-1][n-1] = 0;
+        return matrix;
+    }
+
 
     //returns the list as a matrix, if solvable
     //if unsolvable, returns null
