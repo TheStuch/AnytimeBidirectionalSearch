@@ -174,7 +174,7 @@ class SFBDSIDA{
     // Custom comparator for priority queue
     Comparator<Node> comp = new Comparator<Node>() {
         public int compare(Node lhs, Node rhs) {
-            return (lhs.cost) - (rhs.level);
+            return (lhs.cost) - (rhs.cost);
         }
     };
 

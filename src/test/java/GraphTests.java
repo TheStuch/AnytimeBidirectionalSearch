@@ -1,7 +1,5 @@
 import org.junit.jupiter.api.*;
 
-import java.util.Arrays;
-
 import static org.junit.jupiter.api.Assertions.*;
 public class GraphTests {
 
@@ -213,5 +211,50 @@ public class GraphTests {
         System.out.println("Shortest path length found: " + result);
         System.out.println("Nodes expanded: " + solver.getExpanded());
         System.out.println("Time taken: " + time + " seconds");
+    }
+
+    @Test
+    public void BiDFBnBOptimalityTest(){
+        int N = 3;
+        int runs = 10;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(N);
+            int[][] initial = pm.generatePuzzle();
+            SingleFrontierHeuristicJump jil = new SingleFrontierHeuristicJump(N);
+            int expected = jil.solve(initial);
+            BiDFBnB bidir = new BiDFBnB(N);
+            int actual = bidir.solve(initial);
+            assertEquals(expected, actual);
+        }
+    }
+
+    @Test
+    public void comparingAnytimeDurations3x4(){
+        int M = 3;
+        int N = 4;
+        PuzzleMaker maker = new PuzzleMaker(M, N);
+        int[][] input = maker.generatePuzzle();
+        int[] zeroSpot = PuzzleMaker.findZeroLocation(input);
+        PuzzleMaker.printMatrix(input);
+        int[][] goal = maker.generateGoal();
+
+        long[] times = new long[]{10000000000L, 20000000000L, 40000000000L, 60000000000L};
+        for(long time : times){
+            DFBnB uniDir = new DFBnB(M, N);
+            int result1 = uniDir.publicSolve(input, zeroSpot[0], zeroSpot[1], goal, time);
+            BiDFBnB biDir = new BiDFBnB(M, N);
+            int result2 = biDir.solve(input, time);
+            System.out.print("In " + (time / 1000000000L) + " seconds, ");
+            if(result1 == -1){
+                System.out.println("unidirectional found nothing");
+            } else {
+                System.out.println("unidirectional found " + result1);
+            }
+            if(result2 == -1){
+                System.out.println("bidirectional found nothing");
+            } else {
+                System.out.println("bidirectional found " + result2);
+            }
+        }
     }
 }
