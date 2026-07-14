@@ -230,7 +230,7 @@ public class GraphTests {
 
     @Test
     public void comparingAnytimeDurations3x4(){
-        int M = 3;
+        int M = 4;
         int N = 4;
         PuzzleMaker maker = new PuzzleMaker(M, N);
         int[][] input = maker.generatePuzzle();
@@ -242,7 +242,7 @@ public class GraphTests {
         for(long time : times){
             DFBnB uniDir = new DFBnB(M, N);
             int result1 = uniDir.publicSolve(input, zeroSpot[0], zeroSpot[1], goal, time);
-            BiDFBnB biDir = new BiDFBnB(M, N);
+            BiDBnBV2 biDir = new BiDBnBV2(M, N);
             int result2 = biDir.solve(input, time);
             System.out.print("In " + (time / 1000000000L) + " seconds, ");
             if(result1 == -1){
