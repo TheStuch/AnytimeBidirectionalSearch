@@ -229,7 +229,7 @@ public class GraphTests {
     }
 
     @Test
-    public void comparingAnytimeDurations3x4(){
+    public void comparingAnytimeDurations(){
         int M = 4;
         int N = 4;
         PuzzleMaker maker = new PuzzleMaker(M, N);
@@ -238,22 +238,22 @@ public class GraphTests {
         PuzzleMaker.printMatrix(input);
         int[][] goal = maker.generateGoal();
 
-        long[] times = new long[]{10000000000L, 20000000000L, 40000000000L, 60000000000L};
+        long[] times = new long[]{10000000000L, 30000000000L, 60000000000L};
         for(long time : times){
-            DFBnB uniDir = new DFBnB(M, N);
-            int result1 = uniDir.publicSolve(input, zeroSpot[0], zeroSpot[1], goal, time);
-            BiDBnBV2 biDir = new BiDBnBV2(M, N);
-            int result2 = biDir.solve(input, time);
+            BiBnBHeuristicJump v1 = new BiBnBHeuristicJump(M, N);
+            int result1 = v1.solve(input, time);
+            DFBnB v2 = new DFBnB(M, N);
+            int result2 = v2.solve(input, time);
             System.out.print("In " + (time / 1000000000L) + " seconds, ");
             if(result1 == -1){
-                System.out.println("unidirectional found nothing");
+                System.out.println("Bidirectional Heuristic found nothing");
             } else {
-                System.out.println("unidirectional found " + result1);
+                System.out.println("Bidirectional Heuristic found " + result1);
             }
             if(result2 == -1){
-                System.out.println("bidirectional found nothing");
+                System.out.println("Unidirectional found nothing");
             } else {
-                System.out.println("bidirectional found " + result2);
+                System.out.println("Unidirectional found " + result2);
             }
         }
     }

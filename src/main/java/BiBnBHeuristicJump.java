@@ -1,31 +1,122 @@
 import java.util.*;
+import java.lang.*;
 
-public class BiDBnBV2 {
+public class BiBnBHeuristicJump {
     int expanded = 0;
     final int M;
     final int N;
     final static boolean FORWARD = true;
     final static boolean BACKWARD = false;
     Node answer = null;
-    Node answer2 = null;
     int limit = Integer.MAX_VALUE;
     long startTime = 0L;
     long timeLimit = Long.MAX_VALUE;
-    Map<HashMatrix, Node> seenForward = new HashMap<>();
-    Map<HashMatrix, Node> seenBackward = new HashMap<>();
-
+    Map<HashMatrix, Integer> seenForward = new HashMap<>();
+    Map<HashMatrix, Integer> seenBackward = new HashMap<>();
+    JumpHeuristic heuristic;
     int[][] initial;
     int[][] goal;
     Stack<Node> stack;
 
-    public BiDBnBV2(int m, int n){
+    public BiBnBHeuristicJump(int m, int n){
         M = m;
         N = n;
+        heuristic = jis;
     }
 
-    public BiDBnBV2(int n){
+    public BiBnBHeuristicJump(int n){
         this(n, n);
     }
+
+    JumpHeuristic bf = (Node current, List<Node> forward, List<Node> backward)->{ //branch factor
+        if(forward == null){ //if can't go one way
+            return FORWARD;
+        }
+        if(backward == null){
+            return BACKWARD;
+        }
+        if(forward.size() < backward.size()){// go to smaller branch
+            return FORWARD;
+        }
+        if(backward.size() < forward.size()){
+            return BACKWARD;
+        }
+        return !current.directionTo;
+    };
+
+    JumpHeuristic jis =  (Node current, List<Node> forward, List<Node> backward) -> {//jump if smaller
+        if(forward == null || forward.size() <= 1){
+            return FORWARD;
+        }
+        if(backward == null || backward.size() <= 1){
+            return BACKWARD;
+        }
+        int fSum = 0;
+        for(Node n : forward){
+            fSum += n.f;
+        }
+        double fAvg = fSum / (double) forward.size();
+        int bSum = 0;
+        for(Node n : backward){
+            bSum += n.f;
+        }
+        double bAvg = bSum / (double) backward.size();
+        if(fAvg < bAvg){
+            return FORWARD;
+        }
+        if(bAvg < fAvg){
+            return BACKWARD;
+        }
+        return !current.directionTo;
+    };
+
+     JumpHeuristic jil = (Node current, List<Node> forward, List<Node> backward) -> {//jump if larger
+        if(forward == null || forward.size() <= 1){
+            return FORWARD;
+        }
+        if(backward == null || backward.size() <= 1){
+            return BACKWARD;
+        }
+        int fSum = 0;
+        for(Node n : forward){
+            fSum += n.f;
+        }
+        double fAvg = fSum / (double) forward.size();
+        int bSum = 0;
+        for(Node n : backward){
+            bSum += n.f;
+        }
+        double bAvg = bSum / (double) backward.size();
+        if(fAvg < bAvg){
+            return BACKWARD;
+        }
+        if(bAvg < fAvg){
+            return FORWARD;
+        }
+        return !current.directionTo;
+    };
+
+    JumpHeuristic goByEarliest = (Node current, List<Node> forward, List<Node> backward) -> {//jump if by first larger
+        if(forward == null || forward.size() <= 1){
+            return FORWARD;
+        }
+        if(backward == null || backward.size() <= 1){
+            return BACKWARD;
+        }
+        int fsize = forward.size();
+        int bsize = backward.size();
+        for(int i = 0; i < Math.min(fsize, bsize); i++){
+            int f = forward.get(i).f;
+            int b = backward.get(i).f;
+            if(f < b){
+                return  (i == 0 ? FORWARD: BACKWARD);
+            }
+            if(b < f){
+                return (i == 0 ? BACKWARD: FORWARD);
+            }
+        }
+        return !current.directionTo;
+    };
 
     // Bottom, left, top, right movement
     static int[] row = {1, 0, -1, 0};
@@ -123,34 +214,6 @@ public class BiDBnBV2 {
             return dist;
         }
     }
-    static void printPath(Node front, Node back, List<int[][]> path){
-        if(back == null){
-            printPath(front, null);
-            return;
-        }
-        if(front == null){
-            printPath(back, null);
-            return;
-        }
-        path = new ArrayList<>();
-        path.add(front.start.matrix);
-        while(front != null && front.parent != null){
-            if(front.directionTo == FORWARD){
-                path.add(0, front.parent.start.matrix);
-            }
-            front = front.parent;
-        }while(back != null && back.parent != null){
-            if(back.directionTo == BACKWARD){
-                path.add(back.parent.end.matrix);
-            }
-            back = back.parent;
-        }
-        for (int[][] matrix : path) {
-            PuzzleMaker.printMatrix(matrix);
-            System.out.println();
-        }
-    }
-
     // Print path from root node to destination node
     static void printPath(Node root, List<int[][]> path) {
         if (root == null) {
@@ -208,8 +271,8 @@ public class BiDBnBV2 {
         Node root = new Node(start, end, 0, 0, null, x, y, M - 1, N - 1);
         stack = new Stack<>();
         stack.push(root);
-        seenForward.put(start, root);
-        seenBackward.put(end, root);
+        seenForward.put(start, 0);
+        seenBackward.put(end, 0);
         while (!stack.isEmpty() && withinTimeLimit()){
             Node current = stack.pop();
             findShortestPathToEnd(current);
@@ -224,25 +287,8 @@ public class BiDBnBV2 {
         if (Arrays.deepEquals(current.start.matrix, current.end.matrix)) { //base case: found solution
             answer = current;
             limit = current.flevel + current.blevel;
-            answer2 = null; // path was found directly
             //printPath(answer, null);
             return;
-        }
-        if(current.directionTo == FORWARD && seenBackward.containsKey(current.start)){
-            int val = current.flevel + seenBackward.get(current.start).blevel;
-            if(val < limit){
-                answer = current;
-                answer2 = seenBackward.get(current.start);
-                limit = val;
-            }
-        }
-        if(current.directionTo == BACKWARD && seenForward.containsKey(current.end)){
-            int val = current.blevel + seenForward.get(current.end).flevel;
-            if(val < limit){
-                answer = seenForward.get(current.end);
-                answer2 = current;
-                limit = val;
-            }
         }
         expanded++;
 
@@ -263,7 +309,7 @@ public class BiDBnBV2 {
                 HashMatrix copy = new HashMatrix(newMat);
 
                 Node child = new Node(copy, current.end, current.flevel + 1, current.blevel, current, newX, newY, current.x2, current.y2);
-                if (!seenForward.containsKey(child.start) || seenForward.get(child.start).flevel >= child.flevel) { //node hasn't already been added or found better way
+                if (!seenForward.containsKey(child.start) || seenForward.get(child.start) >= child.flevel) { //node hasn't already been added or found better way
                     startChildren.add(child);
                 }
             }
@@ -282,26 +328,29 @@ public class BiDBnBV2 {
                 HashMatrix copy = new HashMatrix(newMat);
 
                 Node child = new Node(current.start, copy, current.flevel, current.blevel + 1, current, current.x1, current.y1, newX, newY);
-                if (!seenBackward.containsKey(child.end) || seenBackward.get(child.end).blevel >= child.blevel) { //node hasn't already been added or found better way
+                if (!seenBackward.containsKey(child.end) || seenBackward.get(child.end) >= child.blevel) { //node hasn't already been added or found better way
                     endChildren.add(child);
                 }
             }
         }
-        startChildren.sort(comp.reversed());
-        endChildren.sort(comp.reversed());
-        boolean direction = !current.directionTo; //line that decides jump
+        startChildren.sort(comp);
+        endChildren.sort(comp);
+
+        boolean direction = heuristic.jumpDirection(current, startChildren, endChildren); //line that decides jump
         if(direction == FORWARD){
-            for(Node child : startChildren){
+            for(int i = startChildren.size() -1; i >= 0; i--){
+                Node child = startChildren.get(i);
                 if(child.f < limit){
-                    seenForward.put(child.start, child);
+                    seenForward.put(child.start, child.flevel);
                     child.directionTo = FORWARD;
                     stack.add(child);
                 }
             }
         } else {
-            for(Node child : endChildren){
+            for(int i = endChildren.size() -1; i >= 0; i--){
+                Node child = endChildren.get(i);
                 if(child.f < limit){
-                    seenBackward.put(child.end, child);
+                    seenBackward.put(child.end, child.blevel);
                     child.directionTo = BACKWARD;
                     stack.add(child);
                 }
@@ -313,12 +362,20 @@ public class BiDBnBV2 {
         return expanded;
     }
 
+    @FunctionalInterface
+    interface JumpHeuristic{
+        boolean jumpDirection(Node current, List<Node> forward, List<Node> backward);
+    }
+
+
+
+
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 4;
+        int m = 3;
         int n = 4;
-        long timeLimit = 30000000000L;
+        long timeLimit = 20000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
        /*initial = new int[][]{
@@ -330,16 +387,14 @@ public class BiDBnBV2 {
         */
         PuzzleMaker.printMatrix(initial);
         long startTime = System.nanoTime();
-        BiDBnBV2 solver = new BiDBnBV2(m, n);
+        BiBnBHeuristicJump solver = new BiBnBHeuristicJump(m, n);
 
         int result = solver.solve(initial, timeLimit);
         System.out.println("\nShortest Path length found: " + result);
-       if(solver.answer != null) {
-            BiDBnBV2.printPath(solver.answer, solver.answer2, null);
+        if(solver.answer != null) {
+            BiBnBHeuristicJump.printPath(solver.answer, null);
         }
-       if(solver.answer2 != null){
-           System.out.println("answer was found in the middle");
-       }
+
         System.out.println("Nodes expanded: " + solver.expanded);
         long timeTaken = System.nanoTime() - startTime;
         System.out.println("time: " + (timeTaken / 1000000000L) + " seconds");
