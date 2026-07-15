@@ -222,9 +222,10 @@ public class GraphTests {
             int[][] initial = pm.generatePuzzle();
             SingleFrontierHeuristicJump jil = new SingleFrontierHeuristicJump(N);
             int expected = jil.solve(initial);
-            BiDFBnB bidir = new BiDFBnB(N);
+            BiBnBHeuristicJump bidir = new BiBnBHeuristicJump(N);
             int actual = bidir.solve(initial);
             assertEquals(expected, actual);
+            System.out.println("success");
         }
     }
 
@@ -256,5 +257,40 @@ public class GraphTests {
                 System.out.println("Unidirectional found " + result2);
             }
         }
+    }
+
+    @Test
+    public void bidirectionalRelativeSuccessCount(){
+        int N = 4;
+        int runs = 10;
+        long time = 30000000000L;
+        int success = 0;
+        int failure = 0;
+        int mid = 0;
+        int bad = 0;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(N);
+            int[][] initial = pm.generatePuzzle();
+            BiBnBHeuristicJump bidir = new BiBnBHeuristicJump(N);
+            int result = bidir.solve(initial, time);
+            if(result == -1){
+                System.out.println("fail");
+                failure++;
+            } else if (result <= 150){
+                System.out.println("Success! " + result);
+                success++;
+            } else if(result <= 1000){
+                System.out.println("decent: " + result);
+                mid++;
+            }else{
+                System.out.println("bad answer: " + result);
+                bad++;
+            }
+        }
+        System.out.println("Final results:");
+        System.out.println("Successes: " + success);
+        System.out.println("Decent: " + mid);
+        System.out.println("High answers: " + bad);
+        System.out.println("Failures: " + failure);
     }
 }

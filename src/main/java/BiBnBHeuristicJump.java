@@ -21,12 +21,14 @@ public class BiBnBHeuristicJump {
     public BiBnBHeuristicJump(int m, int n){
         M = m;
         N = n;
-        heuristic = jis;
+        heuristic = alternating;
     }
 
     public BiBnBHeuristicJump(int n){
         this(n, n);
     }
+    JumpHeuristic alternating = (Node current, List<Node> forward, List<Node> backward)-> !current.directionTo;
+
 
     JumpHeuristic bf = (Node current, List<Node> forward, List<Node> backward)->{ //branch factor
         if(forward == null){ //if can't go one way
@@ -116,6 +118,48 @@ public class BiBnBHeuristicJump {
             }
         }
         return !current.directionTo;
+    };
+    // Custom comparator for priority queue
+    Comparator<Node> comp = new Comparator<Node>() {
+        public int compare(Node lhs, Node rhs) {
+            return (lhs.f) - (rhs.f);
+        }
+    };
+
+    /*
+    *  generates all grandchildren created by expanding both nodes once
+    * adds the grandchildren to the stack in sorted order and empties the input lists so they aren't added
+    * if any children are answers, set them as answer and return
+     */
+    JumpHeuristic simultaneous = (Node current, List<Node> forward, List<Node> backward) ->{
+        List<Node> grandchildren = new ArrayList<>();
+        for(Node fchild : forward){
+            if(fchild.cost == 0){       //checking if child is a goal
+                if(fchild.f < limit){
+                    seenForward.put(fchild.start, fchild.flevel);
+                    seenBackward.put(fchild.end, fchild.blevel);
+                    limit = fchild.f;
+                    answer = fchild;
+                }
+                return true;
+            }
+            for(Node bchild : backward){
+                Node grandkid = new Node(fchild.start, bchild.end, fchild.flevel, bchild.blevel, fchild, fchild.x1, fchild.y1, bchild.x2, bchild.y2);
+                grandkid.directionTo = BACKWARD;
+                grandchildren.add(grandkid);
+            }
+        }
+        forward.clear();
+        backward.clear();
+        grandchildren.sort(comp.reversed());
+        for (Node n : grandchildren){
+            if (n.f <= limit){
+                seenForward.put(n.start, n.flevel);
+                seenBackward.put(n.end, n.blevel);
+                stack.add(n);
+            }
+        }
+        return true;
     };
 
     // Bottom, left, top, right movement
@@ -239,12 +283,7 @@ public class BiBnBHeuristicJump {
         printPath(root.parent, path);
     }
 
-    // Custom comparator for priority queue
-    Comparator<Node> comp = new Comparator<Node>() {
-        public int compare(Node lhs, Node rhs) {
-            return (lhs.f) - (rhs.f);
-        }
-    };
+
 
     //solve for optimality without time limit
     public int solve(int[][] initial){
@@ -284,7 +323,7 @@ public class BiBnBHeuristicJump {
         if (current.f > limit) { //base case: prune
             return;
         }
-        if (Arrays.deepEquals(current.start.matrix, current.end.matrix)) { //base case: found solution
+        if (current.cost == 0) { //base case: found solution
             answer = current;
             limit = current.flevel + current.blevel;
             //printPath(answer, null);
@@ -373,9 +412,9 @@ public class BiBnBHeuristicJump {
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 3;
+        int m = 4;
         int n = 4;
-        long timeLimit = 20000000000L;
+        long timeLimit = 30000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
        /*initial = new int[][]{
@@ -390,11 +429,10 @@ public class BiBnBHeuristicJump {
         BiBnBHeuristicJump solver = new BiBnBHeuristicJump(m, n);
 
         int result = solver.solve(initial, timeLimit);
-        System.out.println("\nShortest Path length found: " + result);
         if(solver.answer != null) {
             BiBnBHeuristicJump.printPath(solver.answer, null);
         }
-
+        System.out.println("\nShortest Path length found: " + result);
         System.out.println("Nodes expanded: " + solver.expanded);
         long timeTaken = System.nanoTime() - startTime;
         System.out.println("time: " + (timeTaken / 1000000000L) + " seconds");
