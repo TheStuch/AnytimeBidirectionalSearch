@@ -231,7 +231,7 @@ public class GraphTests {
 
     @Test
     public void comparingAnytimeDurations(){
-        int M = 4;
+        int M = 3;
         int N = 4;
         PuzzleMaker maker = new PuzzleMaker(M, N);
         int[][] input = maker.generatePuzzle();
@@ -241,10 +241,10 @@ public class GraphTests {
 
         long[] times = new long[]{10000000000L, 30000000000L, 60000000000L};
         for(long time : times){
-            BiBnBHeuristicJump v1 = new BiBnBHeuristicJump(M, N);
-            int result1 = v1.solve(input, time);
-            DFBnB v2 = new DFBnB(M, N);
-            int result2 = v2.solve(input, time);
+            BiBnBHeuristicJump bidir = new BiBnBHeuristicJump(M, N);
+            int result1 = bidir.solve(input, time);
+            DFBnB unidir = new DFBnB(M, N);
+            int result2 = unidir.solve(input, time);
             System.out.print("In " + (time / 1000000000L) + " seconds, ");
             if(result1 == -1){
                 System.out.println("Bidirectional Heuristic found nothing");
@@ -261,7 +261,8 @@ public class GraphTests {
 
     @Test
     public void bidirectionalRelativeSuccessCount(){
-        int N = 4;
+        int M = 3;
+        int N = 5;
         int runs = 10;
         long time = 30000000000L;
         int success = 0;
@@ -269,9 +270,10 @@ public class GraphTests {
         int mid = 0;
         int bad = 0;
         for(int i = 0; i < runs; i++){
-            PuzzleMaker pm = new PuzzleMaker(N);
+            PuzzleMaker pm = new PuzzleMaker(M, N);
             int[][] initial = pm.generatePuzzle();
-            BiBnBHeuristicJump bidir = new BiBnBHeuristicJump(N);
+            PuzzleMaker.printMatrix(initial);
+            BiBnBHeuristicJump bidir = new BiBnBHeuristicJump(M, N);
             int result = bidir.solve(initial, time);
             if(result == -1){
                 System.out.println("fail");
