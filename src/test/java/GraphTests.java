@@ -231,7 +231,7 @@ public class GraphTests {
 
     @Test
     public void comparingAnytimeDurations(){
-        int M = 3;
+        int M = 4;
         int N = 4;
         PuzzleMaker maker = new PuzzleMaker(M, N);
         int[][] input = maker.generatePuzzle();
@@ -243,14 +243,15 @@ public class GraphTests {
         for(long time : times){
             BiBnBHeuristicJump bidir = new BiBnBHeuristicJump(M, N);
             int result1 = bidir.solve(input, time);
-            DFBnB unidir = new DFBnB(M, N);
-            int result2 = unidir.solve(input, time);
             System.out.print("In " + (time / 1000000000L) + " seconds, ");
             if(result1 == -1){
                 System.out.println("Bidirectional Heuristic found nothing");
             } else {
                 System.out.println("Bidirectional Heuristic found " + result1);
             }
+
+            DFBnB unidir = new DFBnB(M, N);
+            int result2 = unidir.solve(input, time);
             if(result2 == -1){
                 System.out.println("Unidirectional found nothing");
             } else {
@@ -261,10 +262,10 @@ public class GraphTests {
 
     @Test
     public void bidirectionalRelativeSuccessCount(){
-        int M = 3;
-        int N = 5;
-        int runs = 10;
-        long time = 30000000000L;
+        int M = 4;
+        int N = 4;
+        int runs = 5;
+        long time = 60000000000L;
         int success = 0;
         int failure = 0;
         int mid = 0;
@@ -272,7 +273,7 @@ public class GraphTests {
         for(int i = 0; i < runs; i++){
             PuzzleMaker pm = new PuzzleMaker(M, N);
             int[][] initial = pm.generatePuzzle();
-            PuzzleMaker.printMatrix(initial);
+            //PuzzleMaker.printMatrix(initial);
             BiBnBHeuristicJump bidir = new BiBnBHeuristicJump(M, N);
             int result = bidir.solve(initial, time);
             if(result == -1){
@@ -294,5 +295,65 @@ public class GraphTests {
         System.out.println("Decent: " + mid);
         System.out.println("High answers: " + bad);
         System.out.println("Failures: " + failure);
+    }
+
+    @Test
+    public void compareAllBidirectionalHeuristics(){
+        int M = 4;
+        int N = 4;
+        long time = 60000000000L;
+        String[] heuristics = new String[]{"alternating", "bf", "jis", "jil", "goByEarliest", "earliestModified", "earliestExponential", "earliestWeighted"};
+        PuzzleMaker pm = new PuzzleMaker(M, N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        DFBnB unidir = new DFBnB(M, N);
+        int result2 = unidir.solve(initial, time);
+        if(result2 == -1){
+            System.out.println("Unidirectional found nothing");
+        } else {
+            System.out.println("Unidirectional found " + result2);
+        }
+        for(int i = 0; i < heuristics.length; i++){
+            BiBnBHeuristicJump bidir = new BiBnBHeuristicJump(M, N);
+            bidir.setJumpHeuristic(i);
+            int result = bidir.solve(initial, time);
+            if(result == -1){
+                System.out.println(heuristics[i] + " got nothing");
+            } else {
+                System.out.println(heuristics[i] + " got shortest path of " + result);
+            }
+        }
+    }
+
+    @Test
+    public void unidirectionalLayeredBeamOptimalityTest(){
+        int M = 3;
+        int N = 3;
+        int runs = 10;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            SingleFrontierHeuristicJump jil = new SingleFrontierHeuristicJump(N);
+            int expected = jil.solve(initial);
+            UnidirLayeredBeam ulb = new UnidirLayeredBeam(M, N, 3);
+            int actual = ulb.solve(initial);
+            assertEquals(expected, actual);
+            System.out.println("success");
+        }
+    }
+
+    @Test
+    public void comparingLayeredBeamSizes(){
+        int M = 4;
+        int N = 4;
+        long time = 60000000000L;
+        PuzzleMaker pm = new PuzzleMaker(M, N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        for(int k = 1; k <= 16; k <<= 1){
+            UnidirLayeredBeam ulb = new UnidirLayeredBeam(M, N, k);
+            int result = ulb.solve(initial, time);
+            System.out.println("For k = " + k + ", result was " + result);
+        }
     }
 }

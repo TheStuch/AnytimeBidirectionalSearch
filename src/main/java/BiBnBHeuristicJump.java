@@ -19,19 +19,20 @@ public class BiBnBHeuristicJump {
     int[][] goal;
     Stack<Node> stack;
 
+
     public BiBnBHeuristicJump(int m, int n){
         M = m;
         N = n;
-        heuristic = goByEarliest; //change this line to edit the jump policy
+        heuristic = jis; //change this line to edit the jump policy
     }
 
     public BiBnBHeuristicJump(int n){
         this(n, n);
     }
-    JumpHeuristic alternating = (Node current, List<Node> forward, List<Node> backward)-> !current.directionTo;
+    static JumpHeuristic alternating = (Node current, List<Node> forward, List<Node> backward)-> !current.directionTo;
 
 
-    JumpHeuristic bf = (Node current, List<Node> forward, List<Node> backward)->{ //branch factor
+    static JumpHeuristic bf = (Node current, List<Node> forward, List<Node> backward)->{ //branch factor
         if(forward == null){ //if can't go one way
             return FORWARD;
         }
@@ -47,7 +48,33 @@ public class BiBnBHeuristicJump {
         return !current.directionTo;
     };
 
-    JumpHeuristic jis =  (Node current, List<Node> forward, List<Node> backward) -> {//jump if smaller
+    static JumpHeuristic jis =  (Node current, List<Node> forward, List<Node> backward) -> {//jump if smaller
+        if(forward == null || forward.size() <= 1){
+            return FORWARD;
+        }
+        if(backward == null || backward.size() <= 1){
+            return BACKWARD;
+        }
+        int fSum = 0;
+        for(Node n : forward){
+            fSum += n.cost;
+        }
+        double fAvg = fSum / (double) forward.size();
+        int bSum = 0;
+        for(Node n : backward){
+            bSum += n.cost;
+        }
+        double bAvg = bSum / (double) backward.size();
+        if(fAvg < bAvg){
+            return FORWARD;
+        }
+        if(bAvg < fAvg){
+            return BACKWARD;
+        }
+        return !current.directionTo;
+    };
+
+    static JumpHeuristic jil = (Node current, List<Node> forward, List<Node> backward) -> {//jump if larger
         if(forward == null || forward.size() <= 1){
             return FORWARD;
         }
@@ -65,32 +92,6 @@ public class BiBnBHeuristicJump {
         }
         double bAvg = bSum / (double) backward.size();
         if(fAvg < bAvg){
-            return FORWARD;
-        }
-        if(bAvg < fAvg){
-            return BACKWARD;
-        }
-        return !current.directionTo;
-    };
-
-     JumpHeuristic jil = (Node current, List<Node> forward, List<Node> backward) -> {//jump if larger
-        if(forward == null || forward.size() <= 1){
-            return FORWARD;
-        }
-        if(backward == null || backward.size() <= 1){
-            return BACKWARD;
-        }
-        int fSum = 0;
-        for(Node n : forward){
-            fSum += n.f;
-        }
-        double fAvg = fSum / (double) forward.size();
-        int bSum = 0;
-        for(Node n : backward){
-            bSum += n.f;
-        }
-        double bAvg = bSum / (double) backward.size();
-        if(fAvg < bAvg){
             return BACKWARD;
         }
         if(bAvg < fAvg){
@@ -99,7 +100,7 @@ public class BiBnBHeuristicJump {
         return !current.directionTo;
     };
 
-    JumpHeuristic goByEarliest = (Node current, List<Node> forward, List<Node> backward) -> {//jump if by first larger
+    static JumpHeuristic goByEarliest = (Node current, List<Node> forward, List<Node> backward) -> {//jump if by first larger
         if(forward == null || forward.size() <= 1){
             return FORWARD;
         }
@@ -120,7 +121,7 @@ public class BiBnBHeuristicJump {
         }
         return !current.directionTo;
     };
-    JumpHeuristic earliestModified = (Node current, List<Node> forward, List<Node> backward) -> {//follows the BiXDFBnB research's code
+    static JumpHeuristic earliestModified = (Node current, List<Node> forward, List<Node> backward) -> {//follows the BiXDFBnB research's code
         if(forward == null || forward.isEmpty()){
             return FORWARD;
         }
@@ -159,17 +160,53 @@ public class BiBnBHeuristicJump {
         }
     };
     // Custom comparator for priority queue
-    Comparator<Node> weighted = new Comparator<Node>() {
+    static Comparator<Node> weighted = new Comparator<Node>() {
         public int compare(Node lhs, Node rhs) {
-            int costDif = lhs.cost - rhs.cost;
-            if(costDif != 0){
-                return costDif;
-            }
-            return lhs.f - rhs.f;
+            return (lhs.f + lhs.cost) - (rhs.f + rhs.cost);
+
+        }
+    };
+    static Comparator<Node> exponential = new Comparator<Node>() {
+        public int compare(Node lhs, Node rhs) {
+            return (lhs.modifiedCost) - (rhs.modifiedCost);
         }
     };
 
-    JumpHeuristic earliestWeighted = (Node current, List<Node> forward, List<Node> backward) ->{
+    static JumpHeuristic earliestExponential = (Node current, List<Node> forward, List<Node> backward) ->{
+        if(forward == null || forward.isEmpty()){
+            return FORWARD;
+        }
+        if(backward == null || backward.isEmpty()){
+            return BACKWARD;
+        }
+        forward.sort(exponential);
+        backward.sort(exponential);
+        if(forward.get(0).modifiedCost < backward.get(0).modifiedCost){
+            return FORWARD;
+        }
+        if(backward.get(0).modifiedCost < forward.get(0).modifiedCost){
+            return BACKWARD;
+        }
+        int fSum = 0;
+        for(Node n : forward){
+            fSum += n.modifiedCost - n.flevel - n.blevel;
+        }
+        double fAvg = fSum / (double) forward.size();
+        int bSum = 0;
+        for(Node n : backward){
+            bSum += n.modifiedCost - n.flevel - n.blevel;
+        }
+        double bAvg = bSum / (double) backward.size();
+        if(fAvg < bAvg){
+            return FORWARD;
+        }
+        if(bAvg < fAvg){
+            return BACKWARD;
+        }
+        return !current.directionTo;
+    };
+
+    static JumpHeuristic earliestWeighted = (Node current, List<Node> forward, List<Node> backward) ->{
         if(forward == null || forward.isEmpty()){
             return FORWARD;
         }
@@ -178,20 +215,20 @@ public class BiBnBHeuristicJump {
         }
         forward.sort(weighted);
         backward.sort(weighted);
-        if(forward.get(0).f < backward.get(0).f){
+        if(forward.get(0).cost < backward.get(0).cost){
             return FORWARD;
         }
-        if(backward.get(0).f < forward.get(0).f){
+        if(backward.get(0).cost < forward.get(0).cost){
             return BACKWARD;
         }
         int fSum = 0;
         for(Node n : forward){
-            fSum += n.f;
+            fSum += n.cost;
         }
         double fAvg = fSum / (double) forward.size();
         int bSum = 0;
         for(Node n : backward){
-            bSum += n.f;
+            bSum += n.cost;
         }
         double bAvg = bSum / (double) backward.size();
         if(fAvg < bAvg){
@@ -208,7 +245,7 @@ public class BiBnBHeuristicJump {
     * adds the grandchildren to the stack in sorted order and empties the input lists so they aren't added
     * if any children are answers, set them as answer and return
      */
-    JumpHeuristic simultaneous = (Node current, List<Node> forward, List<Node> backward) ->{
+     JumpHeuristic simultaneous = (Node current, List<Node> forward, List<Node> backward) ->{
         List<Node> grandchildren = new ArrayList<>();
         for(Node fchild : forward){
             if(fchild.cost == 0){       //checking if child is a goal
@@ -232,12 +269,14 @@ public class BiBnBHeuristicJump {
         for (Node n : grandchildren){
             if (n.f <= limit){
               seenForward.put(n.start, n);
-               seenBackward.put(n.end, n);
-                stack.add(n);
+              seenBackward.put(n.end, n);
+              stack.add(n);
             }
         }
         return true;
     };
+
+    static JumpHeuristic[] heuristics = new JumpHeuristic[]{alternating, bf, jis, jil, goByEarliest, earliestModified, earliestExponential, earliestWeighted};
 
     // Bottom, left, top, right movement
     static int[] row = {1, 0, -1, 0};
@@ -287,6 +326,7 @@ public class BiBnBHeuristicJump {
         int x1, y1;
         int x2, y2;
         final int cost;
+        int modifiedCost = 0;
         int flevel, blevel;
         int f;
 
@@ -302,6 +342,7 @@ public class BiBnBHeuristicJump {
             this.blevel = blevel;
             this.parent = parent;
             this.directionTo = FORWARD;
+            this.modifiedCost = flevel + blevel;
             this.cost = calculateCost();
             this.f = cost + this.flevel + this.blevel;
         }
@@ -329,7 +370,9 @@ public class BiBnBHeuristicJump {
                     int goalY = goalLoc[val][1];
 
                     // Add Manhattan distance
-                    dist += Math.abs(i - goalX) + Math.abs(j - goalY);
+                    int manhattan = Math.abs(i - goalX) + Math.abs(j - goalY);
+                    dist += manhattan;
+                    this.modifiedCost += manhattan * manhattan; //modified cost has sum of squared manhattan distance
                 }
             }
 
@@ -376,6 +419,14 @@ public class BiBnBHeuristicJump {
         printPath(root.parent, path);
     }
 
+    public void printAnswer(){
+        if(answer == null){
+            System.out.println("no answer found");
+            return;
+        }
+        printPath(answer);
+    }
+
     static void printPath(Node curr){
         List<int[][]> path = new ArrayList<>();
         if(curr == null){
@@ -417,7 +468,13 @@ public class BiBnBHeuristicJump {
         }
     }
 
-
+    public void setJumpHeuristic(int n){
+        if(n < 0 || n >= heuristics.length){
+            System.out.println("no heuristic exists at spot " + n);
+            return;
+        }
+        this.heuristic = heuristics[n];
+    }
 
     //solve for optimality without time limit
     public int solve(int[][] initial){
@@ -446,6 +503,7 @@ public class BiBnBHeuristicJump {
         stack.push(root);
         seenForward.put(start, root);
         seenBackward.put(end, root);
+        seenNodes.add(root);
         while (!stack.isEmpty() && withinTimeLimit()){
             Node current = stack.pop();
             findShortestPathToEnd(current);
@@ -483,14 +541,17 @@ public class BiBnBHeuristicJump {
                 Node child = new Node(copy, current.end, current.flevel + 1, current.blevel, current, newX, newY, current.x2, current.y2);
                 if (!seenForward.containsKey(child.start)|| seenForward.get(child.start).flevel >= child.flevel) { //node isn't the parent
                     startChildren.add(child);
-                }else if(!seenNodes.contains(child)){ //if node could get to lower answer
+                } else if(!seenNodes.contains(child)){ //if node could get to lower answer
                     child.f -= child.flevel;
+                    child.modifiedCost -= child.flevel;
                     child.flevel = seenForward.get(child.start).flevel;
                     child.f += child.flevel;
+                    child.modifiedCost += child.flevel;
                     child.otherParent = child.parent;
                     child.parent = seenForward.get(child.start);
                     startChildren.add(child);
                 }
+
             }
 
             newX = current.x2 + row[i];
@@ -511,11 +572,14 @@ public class BiBnBHeuristicJump {
                     endChildren.add(child);
                 } else if(!seenNodes.contains(child)){ //if node could get to lower answer
                     child.f -= child.blevel;
+                    child.modifiedCost -= child.blevel;
                     child.blevel = seenBackward.get(child.end).blevel;
                     child.f += child.blevel;
+                    child.modifiedCost += child.blevel;
                     child.otherParent = seenBackward.get(child.end);
                     endChildren.add(child);
                 }
+
             }
         }
         startChildren.sort(comp);
@@ -524,7 +588,7 @@ public class BiBnBHeuristicJump {
         boolean direction = heuristic.jumpDirection(current, startChildren, endChildren); //line that decides jump
         if(direction == FORWARD){
             //startChildren.sort(weighted);
-            for(int i = startChildren.size() -1; i >= 0; i--){
+            for(int i = startChildren.size() - 1; i >= 0; i--){
                 Node child = startChildren.get(i);
                 if(child.f < limit){
                     seenForward.put(child.start, child);
@@ -534,7 +598,7 @@ public class BiBnBHeuristicJump {
                 }
             }
         } else {
-            //endChildren.sort(weighted);
+            endChildren.sort(weighted);
             for(int i = endChildren.size() -1; i >= 0; i--){
                 Node child = endChildren.get(i);
                 if(child.f < limit){
@@ -552,7 +616,7 @@ public class BiBnBHeuristicJump {
     }
 
     @FunctionalInterface
-    interface JumpHeuristic{
+    static interface JumpHeuristic{
         boolean jumpDirection(Node current, List<Node> forward, List<Node> backward);
     }
 
@@ -562,18 +626,18 @@ public class BiBnBHeuristicJump {
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 3;
-        int n = 5;
+        int m = 4;
+        int n = 4;
         long timeLimit = 40000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
-       /*initial = new int[][]{
-                {4, 0, 5},
-                {2, 3, 1}
+       initial = new int[][]{
+                {5, 2, 3, 4},
+                {7, 1, 11, 8},
+                {9, 0, 15, 10},
+                {13, 14, 6, 12}
         };
 
-
-        */
         PuzzleMaker.printMatrix(initial);
         long startTime = System.nanoTime();
         BiBnBHeuristicJump solver = new BiBnBHeuristicJump(m, n);
