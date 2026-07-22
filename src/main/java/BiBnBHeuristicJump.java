@@ -598,7 +598,7 @@ public class BiBnBHeuristicJump {
                 }
             }
         } else {
-            endChildren.sort(weighted);
+            //endChildren.sort(weighted);
             for(int i = endChildren.size() -1; i >= 0; i--){
                 Node child = endChildren.get(i);
                 if(child.f < limit){

@@ -356,4 +356,165 @@ public class GraphTests {
             System.out.println("For k = " + k + ", result was " + result);
         }
     }
+    @Test
+    public void bidirectionalLayeredBeamOptimalityTest(){
+        int M = 3;
+        int N = 3;
+        int runs = 10;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            SingleFrontierHeuristicJump jil = new SingleFrontierHeuristicJump(N);
+            int expected = jil.solve(initial);
+            BidirLayeredBeam blb = new BidirLayeredBeam(M, N, 10);
+            int actual = blb.solve(initial);
+            assertEquals(expected, actual);
+            System.out.println("success");
+        }
+    }
+
+    @Test
+    public void comparingBidirectionalLayeredBeamSizes(){
+        int M = 4;
+        int N = 4;
+        long time = 60000000000L;
+        int runs = 2;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            PuzzleMaker.printMatrix(initial);
+            for(int k = 0; k <= 250; k += 50){
+                UnidirLayeredBeam ulb = new UnidirLayeredBeam(M, N, k);
+                int result1 = ulb.solve(initial, time);
+                System.out.println("For k = " + k + ",");
+                System.out.print("unidirectional got " + result1);
+                BidirLayeredBeam bilb = new BidirLayeredBeam(M, N, k);
+                int result2 = bilb.solve(initial, time);
+                System.out.println(". Bidirectional got " + result2);
+            }
+        }
+    }
+    @Test
+    public void comparingDirectionsOfLayeredBeams(){
+        int M = 4;
+        int N = 4;
+        int K = 1000;
+        long time = 30000000000L;
+        int runs = 10;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            PuzzleMaker.printMatrix(initial);
+            UnidirLayeredBeam ulb = new UnidirLayeredBeam(M, N, K);
+            int result1 = ulb.solve(initial, time);
+            System.out.println("Unidirectional got " + result1);
+            BidirLayeredBeam bilb = new BidirLayeredBeam(M, N, K);
+            int result2 = bilb.solve(initial, time);
+            System.out.println("Bidirectional got " + result2);
+        }
+    }
+
+    @Test
+    public void compareAllBidirectionalHeuristicsLayeredBeam4x4(){
+        int M = 4;
+        int N = 4;
+        int K = 1000;
+        long time = 60000000000L;
+        String[] heuristics = new String[]{"alternating", "bf", "jis", "jil", "goByEarliest", "earliestModified", "earliestWeighted"};
+        PuzzleMaker pm = new PuzzleMaker(M, N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        UnidirLayeredBeam unidir = new UnidirLayeredBeam(M, N, K);
+        int result2 = unidir.solve(initial, time);
+        if(result2 == -1){
+            System.out.println("Unidirectional found nothing");
+        } else {
+            System.out.println("Unidirectional found " + result2);
+        }
+        for(int i = 0; i < heuristics.length; i++){
+            BidirLayeredBeam bidir = new BidirLayeredBeam(M, N, K);
+            bidir.setJumpHeuristic(i);
+            int result = bidir.solve(initial, time);
+            if(result == -1){
+                System.out.println(heuristics[i] + " got nothing");
+            } else {
+                System.out.println(heuristics[i] + " got shortest path of " + result);
+            }
+        }
+    }
+
+    @Test
+    public void comparingDirectionsOfLayeredBeams5x4(){
+        int M = 5;
+        int N = 4;
+        int K = 1000;
+        long time = 60000000000L;
+        int runs = 5;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            PuzzleMaker.printMatrix(initial);
+            UnidirLayeredBeam ulb = new UnidirLayeredBeam(M, N, K);
+            int result1 = ulb.solve(initial, time);
+            System.out.println("Unidirectional got " + result1);
+            BidirLayeredBeam bilb = new BidirLayeredBeam(M, N, K);
+            int result2 = bilb.solve(initial, time);
+            System.out.println("Bidirectional got " + result2);
+        }
+    }
+
+    @Test
+    public void compareAllBidirectionalHeuristicsLayeredBeam5x4(){
+        int M = 5;
+        int N = 4;
+        int K = 1000;
+        long time = 60000000000L;
+        String[] heuristics = new String[]{"alternating", "bf", "jis", "jil", "goByEarliest", "earliestModified"};
+        PuzzleMaker pm = new PuzzleMaker(M, N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        UnidirLayeredBeam unidir = new UnidirLayeredBeam(M, N, K);
+        int result2 = unidir.solve(initial, time);
+        if(result2 == -1){
+            System.out.println("Unidirectional found nothing");
+        } else {
+            System.out.println("Unidirectional found " + result2);
+        }
+        for(int i = 1; i < heuristics.length; i++){
+            BidirLayeredBeam bidir = new BidirLayeredBeam(M, N, K);
+            bidir.setJumpHeuristic(i);
+            int result = bidir.solve(initial, time);
+            if(result == -1){
+                System.out.println(heuristics[i] + " got nothing");
+            } else {
+                System.out.println(heuristics[i] + " got shortest path of " + result);
+            }
+        }
+    }
+
+    @Test
+    public void comparingBestLayeredBeamAlgorithms5x4(){
+        int M = 5;
+        int N = 4;
+        int K = 1000;
+        long time = 60000000000L;
+        int runs = 5;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            PuzzleMaker.printMatrix(initial);
+            UnidirLayeredBeam ulb = new UnidirLayeredBeam(M, N, K);
+            int result1 = ulb.solve(initial, time);
+            System.out.println("Unidirectional got " + result1);
+            BidirLayeredBeam bf = new BidirLayeredBeam(M, N, K);
+            bf.setJumpHeuristic(1);
+            int result2 = bf.solve(initial, time);
+            System.out.println("Branch factor got " + result2);
+            BidirLayeredBeam fAndF = new BidirLayeredBeam(M, N, K);
+            bf.setJumpHeuristic(4); //go by earliest
+            int result3 = bf.solve(initial, time);
+            System.out.println("Fill and Find got " + result3);
+        }
+    }
+
 }
