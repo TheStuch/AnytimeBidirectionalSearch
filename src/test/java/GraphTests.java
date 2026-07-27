@@ -505,15 +505,19 @@ public class GraphTests {
             PuzzleMaker.printMatrix(initial);
             UnidirLayeredBeam ulb = new UnidirLayeredBeam(M, N, K);
             int result1 = ulb.solve(initial, time);
-            System.out.println("Unidirectional got " + result1);
+            System.out.println("Unidirectional got " + result1 + " with " + ulb.getExpanded() + " expansions");
+            ulb = null;
+            /*
             BidirLayeredBeam bf = new BidirLayeredBeam(M, N, K);
             bf.setJumpHeuristic(1);
             int result2 = bf.solve(initial, time);
-            System.out.println("Branch factor got " + result2);
-            BidirLayeredBeam fAndF = new BidirLayeredBeam(M, N, K);
-            bf.setJumpHeuristic(4); //go by earliest
-            int result3 = bf.solve(initial, time);
-            System.out.println("Fill and Find got " + result3);
+            System.out.println("Branch factor got " + result2 + " with " + bf.getExpanded() + " expansions");
+            bf = null;
+
+             */
+            FillAndFind fAndF = new FillAndFind(M, N, K);
+            int result3 = fAndF.solve(initial, time);
+            System.out.println("Fill and Find got " + result3 + " with " + fAndF.getExpanded() + " expansions");
         }
     }
 

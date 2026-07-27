@@ -176,7 +176,7 @@ class UnidirLayeredBeam{
 
     //recursively find shortest path from current to goal
     private void findShortestPathToEnd(Node current) {
-        if(current.f >= limit ||(seen.containsKey(current) && seen.get(current) <= current.f)){ //base case: prune
+        if(current.f >= limit ||(seen.containsKey(current) && seen.get(current) < current.f)){ //base case: prune
             return;
         }
         if(Arrays.deepEquals(current.mat, goal)){ //base case: found solution
@@ -184,7 +184,6 @@ class UnidirLayeredBeam{
             answer = current;
             return;
         }
-        seen.put(current, current.f);
         expanded++;
         // Generate all possible child nodes
         List<Node> children = new ArrayList<>();
@@ -210,6 +209,7 @@ class UnidirLayeredBeam{
         Stack<Node> leftovers = new Stack<>();
         for(Node c : children){
             if(c.f < limit){
+                seen.put(c, c.f);
                 if(openList.size() < K){
                     openList.add(c);
                 } else {

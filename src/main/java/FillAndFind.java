@@ -1,7 +1,6 @@
 import java.util.*;
-import java.lang.*;
 
-public class BidirLayeredBeam {
+public class FillAndFind {
     int expanded = 0;
     final int M;
     final int N;
@@ -20,14 +19,12 @@ public class BidirLayeredBeam {
     int[][] goal;
 
 
-    public BidirLayeredBeam(int m, int n, int k){
+    public FillAndFind(int m, int n, int k){
         M = m;
         N = n;
         K = Math.max(k, 1); //k can't be set below 1
         heuristic = goByEarliest; //change this line to edit the jump policy
     }
-
-    static JumpHeuristic alternating = (Node current, List<Node> forward, List<Node> backward)-> !current.directionTo;
 
 
     static JumpHeuristic bf = (Node current, List<Node> forward, List<Node> backward)->{ //branch factor
@@ -46,57 +43,46 @@ public class BidirLayeredBeam {
         return !current.directionTo;
     };
 
-    static JumpHeuristic jis =  (Node current, List<Node> forward, List<Node> backward) -> {//jump if smaller
-        if(forward == null || forward.size() <= 1){
+     boolean bf2(Node current, List<Node> forward, List<Node> backward){ //branch factor + grandkids branch factor
+        if(forward == null){ //if can't go one way
             return FORWARD;
         }
-        if(backward == null || backward.size() <= 1){
+        if(backward == null){
             return BACKWARD;
         }
-        int fSum = 0;
-        for(Node n : forward){
-            fSum += n.cost;
-        }
-        double fAvg = fSum / (double) forward.size();
-        int bSum = 0;
-        for(Node n : backward){
-            bSum += n.cost;
-        }
-        double bAvg = bSum / (double) backward.size();
-        if(fAvg < bAvg){
+        if(forward.size() < backward.size()){// go to smaller branch
             return FORWARD;
         }
-        if(bAvg < fAvg){
+        if(backward.size() < forward.size()){
             return BACKWARD;
         }
+        int f = 0;
+        int b = 0;
+        for(Node child : forward){ //count how many children are in edges
+            if(child.x1 == 0 || child.x1 == M-1){
+                f++;
+            }
+            if(child.y1 == 0 || child.x1 == N-1){
+                f++;
+            }
+        }
+         for(Node child : backward){
+             if(child.x2 == 0 || child.x2 == M-1){
+                 b++;
+             }
+             if(child.y2 == 0 || child.x2 == N-1){
+                 b++;
+             }
+         }
+         if(f > b){
+             return FORWARD;
+         }
+         if(b > f){
+             return BACKWARD;
+         }
         return !current.directionTo;
-    };
+    }
 
-    static JumpHeuristic jil = (Node current, List<Node> forward, List<Node> backward) -> {//jump if larger
-        if(forward == null || forward.size() <= 1){
-            return FORWARD;
-        }
-        if(backward == null || backward.size() <= 1){
-            return BACKWARD;
-        }
-        int fSum = 0;
-        for(Node n : forward){
-            fSum += n.f;
-        }
-        double fAvg = fSum / (double) forward.size();
-        int bSum = 0;
-        for(Node n : backward){
-            bSum += n.f;
-        }
-        double bAvg = bSum / (double) backward.size();
-        if(fAvg < bAvg){
-            return BACKWARD;
-        }
-        if(bAvg < fAvg){
-            return FORWARD;
-        }
-        return !current.directionTo;
-    };
 
     static JumpHeuristic goByEarliest = (Node current, List<Node> forward, List<Node> backward) -> {//jump if by first larger
         if(forward == null || forward.size() <= 1){
@@ -105,51 +91,17 @@ public class BidirLayeredBeam {
         if(backward == null || backward.size() <= 1){
             return BACKWARD;
         }
-        int fsize = forward.size();
-        int bsize = backward.size();
-        for(int i = 0; i < Math.min(fsize, bsize); i++){
-            int f = forward.get(i).f;
-            int b = backward.get(i).f;
+            int f = forward.get(0).f;
+            int b = backward.get(0).f;
             if(f < b){
-                return  (i == 0 ? FORWARD: BACKWARD);
+                return FORWARD;
             }
             if(b < f) {
-                return (i == 0 ? BACKWARD : FORWARD);
+                return BACKWARD;
             }
-        }
         return !current.directionTo;
     };
-    static JumpHeuristic earliestModified = (Node current, List<Node> forward, List<Node> backward) -> {//follows the BiXDFBnB research's code
-        if(forward == null || forward.isEmpty()){
-            return FORWARD;
-        }
-        if(backward == null || backward.isEmpty()){
-            return BACKWARD;
-        }
-        if(forward.get(0).f < backward.get(0).f){
-            return FORWARD;
-        }
-        if(backward.get(0).f < forward.get(0).f){
-            return BACKWARD;
-        }
-        int fSum = 0;
-        for(Node n : forward){
-            fSum += n.f;
-        }
-        double fAvg = fSum / (double) forward.size();
-        int bSum = 0;
-        for(Node n : backward){
-            bSum += n.f;
-        }
-        double bAvg = bSum / (double) backward.size();
-        if(fAvg < bAvg){
-            return FORWARD;
-        }
-        if(bAvg < fAvg){
-            return BACKWARD;
-        }
-        return !current.directionTo;
-    };
+
 
     // Custom comparator for priority queue
     Comparator<Node> comp = new Comparator<Node>() {
@@ -164,8 +116,6 @@ public class BidirLayeredBeam {
 
         }
     };
-    static JumpHeuristic[] heuristics = new JumpHeuristic[]{alternating, bf, jis, jil, goByEarliest, earliestModified};
-
     // Bottom, left, top, right movement
     static int[] row = {1, 0, -1, 0};
     static int[] col = {0, -1, 0, 1};
@@ -184,9 +134,10 @@ public class BidirLayeredBeam {
         boolean directionTo;
         int[][] start;
         int[][] end;
+        int[][] goalLoc = null;
         int x1, y1;
         int x2, y2;
-        final int cost;
+        int cost;
         int level;
         int f;
 
@@ -200,16 +151,21 @@ public class BidirLayeredBeam {
             this.level = level;
             this.parent = parent;
             this.directionTo = FORWARD;
-            this.cost = calculateCost();
-            this.f = this.cost + this.level;
+            this.cost = Integer.MAX_VALUE;
+            this.f = Integer.MAX_VALUE;
         }
 
-        private int calculateCost() {
+        private void calculateCost() {
             int dist = 0;
-            int[][] goalLoc = new int[M * N][2];
-            for(int i = 0; i < M; i++){
-                for(int j = 0; j < N; j++){
-                    goalLoc[end[i][j]] = new int[]{i, j};
+            if(this.directionTo == FORWARD){
+                this.goalLoc = this.parent.goalLoc;
+            }
+            if(this.goalLoc == null){
+                goalLoc = new int[M * N][2];
+                for(int i = 0; i < M; i++){
+                    for(int j = 0; j < N; j++){
+                        goalLoc[end[i][j]] = new int[]{i, j};
+                    }
                 }
             }
 
@@ -230,8 +186,8 @@ public class BidirLayeredBeam {
                     dist += Math.abs(i - goalX) + Math.abs(j - goalY);
                 }
             }
-
-            return dist;
+            this.cost = dist;
+            this.f = this.cost + this.level;
         }
         @Override
         public int hashCode(){
@@ -282,14 +238,6 @@ public class BidirLayeredBeam {
         printPath(answer, null);
     }
 
-    public void setJumpHeuristic(int n){
-        if(n < 0 || n >= heuristics.length){
-            System.out.println("no heuristic exists at spot " + n);
-            return;
-        }
-        this.heuristic = heuristics[n];
-    }
-
     //solve for optimality without time limit
     public int solve(int[][] initial){
         return solve(initial, Long.MAX_VALUE);
@@ -312,6 +260,7 @@ public class BidirLayeredBeam {
         this.initial = initial;
         this.goal = goal;
         Node root = new Node(initial, goal, 0, null, x, y, M - 1, N - 1);
+        seenNodes.put(root, 0);
         openList.add(root);
         while ((!openList.isEmpty() || !extras.isEmpty()) && withinTimeLimit()){
             Node current = null;
@@ -326,7 +275,7 @@ public class BidirLayeredBeam {
     }
 
     private void findShortestPathToEnd(Node current) {
-        if (current.f > limit || (seenNodes.containsKey(current) && seenNodes.get(current) <= current.f)) { //base case: prune if guaranteed suboptimal
+        if (current.f > limit || (seenNodes.containsKey(current) && seenNodes.get(current) < current.level)) { //base case: prune if guaranteed suboptimal
             return;
         }
         if (current.cost == 0) { //base case: found solution
@@ -334,7 +283,6 @@ public class BidirLayeredBeam {
             limit = current.level;
             return;
         }
-        seenNodes.put(current, current.f);
         expanded++;
 
         List<Node> startChildren = new ArrayList<>();
@@ -351,10 +299,9 @@ public class BidirLayeredBeam {
                 newMat[current.x1][current.y1] = newMat[newX][newY];
                 newMat[newX][newY] = 0;
 
-
-
                 Node child = new Node(newMat, current.end, current.level + 1, current, newX, newY, current.x2, current.y2);
-                if (!seenNodes.containsKey(child)|| seenNodes.get(child) >= child.f) { //node hasn't been seen with a better value
+                child.directionTo = FORWARD;
+                if (!seenNodes.containsKey(child)|| seenNodes.get(child) >= child.level) { //node hasn't been seen with a better value
                     startChildren.add(child);
                 }
 
@@ -372,27 +319,32 @@ public class BidirLayeredBeam {
                 newMat[newX][newY] = 0;
 
                 Node child = new Node(current.start, newMat,current.level + 1, current, current.x1, current.y1, newX, newY);
-                if (!seenNodes.containsKey(child) || seenNodes.get(child) >= child.f) { //node hasn't already been added or found better way
+                child.directionTo = BACKWARD;
+                if (!seenNodes.containsKey(child) || seenNodes.get(child) >= child.level) { //node hasn't already been added or found better way
                     endChildren.add(child);
                 }
 
             }
         }
-        startChildren.sort(comp);
-        endChildren.sort(comp);
 
         boolean direction;
         if(openList.size() < K - 2){
-            direction = bf.jumpDirection(current, startChildren, endChildren);
+            direction = bf2(current, startChildren, endChildren);
+            if(direction == FORWARD){
+                setCostsAndSort(startChildren);
+            } else {
+                setCostsAndSort(endChildren);
+            }
         } else{
+            setCostsAndSort(startChildren);
+            setCostsAndSort(endChildren);
             direction = heuristic.jumpDirection(current, startChildren, endChildren); //line that decides jump
         }
         Stack<Node> others = new Stack<>();
         if(direction == FORWARD){
-            //startChildren.sort(weighted);
             for(Node child : startChildren){
                 if(child.f < limit){
-                    child.directionTo = FORWARD;
+                    seenNodes.put(child, child.level);
                     if(openList.size() < K){
                         openList.add(child);
                     } else {
@@ -403,7 +355,7 @@ public class BidirLayeredBeam {
         } else {
             for(Node child : endChildren){
                 if(child.f < limit){
-                    child.directionTo = BACKWARD;
+                    seenNodes.put(child, child.level);
                     if(openList.size() < K){
                         openList.add(child);
                     } else {
@@ -417,12 +369,21 @@ public class BidirLayeredBeam {
         }
     }
 
+    private void setCostsAndSort(List<Node> children){
+        for(Node child : children){
+            if(child.cost == Integer.MAX_VALUE){
+                child.calculateCost();
+            }
+        }
+        children.sort(comp);
+    }
+
     public int getExpanded(){
         return expanded;
     }
 
     @FunctionalInterface
-    static interface JumpHeuristic{
+     interface JumpHeuristic{
         boolean jumpDirection(Node current, List<Node> forward, List<Node> backward);
     }
 
@@ -432,7 +393,7 @@ public class BidirLayeredBeam {
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 5;
+        int m = 4;
         int n = 4;
         int k = 1000;
         long timeLimit = 60000000000L;
@@ -450,8 +411,7 @@ public class BidirLayeredBeam {
 
         PuzzleMaker.printMatrix(initial);
         long startTime = System.nanoTime();
-        BidirLayeredBeam solver = new BidirLayeredBeam(m, n, k);
-        solver.setJumpHeuristic(4);
+        FillAndFind solver = new FillAndFind(m, n, k);
         int result = solver.solve(initial, timeLimit);
         System.out.println(result);
         if(solver.answer != null && result < 80) {
