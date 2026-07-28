@@ -496,7 +496,7 @@ public class GraphTests {
     public void comparingBestLayeredBeamAlgorithms5x4(){
         int M = 5;
         int N = 4;
-        int K = 1000;
+        int K = 5000;
         long time = 60000000000L;
         int runs = 5;
         for(int i = 0; i < runs; i++){

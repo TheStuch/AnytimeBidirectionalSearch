@@ -130,7 +130,6 @@ public class FillAndFind {
 
     class Node{
         Node parent;
-        Node otherParent = null;
         boolean directionTo;
         int[][] start;
         int[][] end;
@@ -215,19 +214,21 @@ public class FillAndFind {
             }
             return;
         }
+        String dir = "";
         if(path == null || path.isEmpty()){
             path = new ArrayList<>();
             path.add(root.start);
         } else {
             if(Arrays.deepEquals(root.start, path.get(0))){ //if starts the same, it was a back change
                 path.add(root.end);
-                System.out.print("backwards ");
+                dir = "backwards ";
             }else {     //change was done at the front
                 path.add(0, root.start);
-                System.out.print("forwards ");
+                dir = "forwards ";
             }
         }
         printPath(root.parent, path);
+        System.out.print(dir);
     }
 
     public void printAnswer(){
@@ -261,7 +262,11 @@ public class FillAndFind {
         this.goal = goal;
         Node root = new Node(initial, goal, 0, null, x, y, M - 1, N - 1);
         seenNodes.put(root, 0);
-        openList.add(root);
+        if(x != 0 && x != M - 1 && y != 0 && y != N - 1){ //start in the middle
+            putForwardChildrenInList(root);
+        } else {
+            openList.add(root);
+        }
         while ((!openList.isEmpty() || !extras.isEmpty()) && withinTimeLimit()){
             Node current = null;
             if(!openList.isEmpty()){
@@ -274,11 +279,40 @@ public class FillAndFind {
         return answer;
     }
 
+    /**
+     * expands node in the forward direction and puts all valid children on the open list
+     * @param current node that's forward children are being expanded (should only be used on the root node)
+     */
+    private void putForwardChildrenInList(Node current) {
+        for (int i = 0; i < 4; i++) {
+
+            int newX = current.x1 + row[i], newY = current.y1 + col[i]; //child from start node
+            if (isSafe(newX, newY)) {
+                int[][] newMat = new int[M][N];
+                for (int j = 0; j < M; j++)
+                    System.arraycopy(current.start[j], 0, newMat[j], 0, N);
+
+                // Swap blank tile
+                newMat[current.x1][current.y1] = newMat[newX][newY];
+                newMat[newX][newY] = 0;
+
+                Node child = new Node(newMat, current.end, current.level + 1, current, newX, newY, current.x2, current.y2);
+                child.directionTo = FORWARD;
+                seenNodes.put(child, child.level);
+                openList.add(child);
+            }
+        }
+    }
+
     private void findShortestPathToEnd(Node current) {
         if (current.f > limit || (seenNodes.containsKey(current) && seenNodes.get(current) < current.level)) { //base case: prune if guaranteed suboptimal
             return;
         }
         if (current.cost == 0) { //base case: found solution
+            /*
+            long seconds = (System.nanoTime() - startTime) / 1000000000L;
+            System.out.println("Answer of " + current.level + " found at " + seconds + "sec and " + expanded + " expansions");
+           */
             answer = current;
             limit = current.level;
             return;
@@ -344,8 +378,8 @@ public class FillAndFind {
         if(direction == FORWARD){
             for(Node child : startChildren){
                 if(child.f < limit){
-                    seenNodes.put(child, child.level);
                     if(openList.size() < K){
+                        seenNodes.put(child, child.level);
                         openList.add(child);
                     } else {
                         others.push(child);
@@ -355,8 +389,8 @@ public class FillAndFind {
         } else {
             for(Node child : endChildren){
                 if(child.f < limit){
-                    seenNodes.put(child, child.level);
                     if(openList.size() < K){
+                        seenNodes.put(child, child.level);
                         openList.add(child);
                     } else {
                         others.push(child);
@@ -365,7 +399,9 @@ public class FillAndFind {
             }
         }
         while (!others.isEmpty()){
-            extras.push(others.pop());
+            Node child = others.pop();
+            seenNodes.put(child, child.level);
+            extras.push(child);
         }
     }
 
@@ -395,7 +431,7 @@ public class FillAndFind {
         // Initial configuration
         int m = 4;
         int n = 4;
-        int k = 1000;
+        int k = 5000;
         long timeLimit = 60000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
