@@ -17,6 +17,7 @@ public class FillAndFind {
     JumpHeuristic heuristic;
     int[][] initial;
     int[][] goal;
+    boolean jump = true;
 
 
     public FillAndFind(int m, int n, int k){
@@ -28,16 +29,18 @@ public class FillAndFind {
 
 
     static JumpHeuristic bf = (Node current, List<Node> forward, List<Node> backward)->{ //branch factor
-        if(forward == null){ //if can't go one way
+        if(forward == null || forward.size() <= 1){ //if can't go one way or obviously better
             return FORWARD;
         }
-        if(backward == null){
+        if(backward == null || backward.size() <= 1){
             return BACKWARD;
         }
-        if(forward.size() < backward.size()){// go to smaller branch
+        int fsize = forward.size() + (current.directionTo ? 1 : 0);
+        int bsize = backward.size() + (current.directionTo ? 0 : 1);
+        if(fsize < bsize){// go to smaller branch
             return FORWARD;
         }
-        if(backward.size() < forward.size()){
+        if(bsize < fsize){
             return BACKWARD;
         }
         return !current.directionTo;
@@ -126,6 +129,10 @@ public class FillAndFind {
     }
     boolean withinTimeLimit(){
         return (System.nanoTime() - startTime) < timeLimit;
+    }
+
+    public void setJumpPolicy(boolean b) {
+        jump = b;
     }
 
     class Node{
@@ -363,7 +370,11 @@ public class FillAndFind {
 
         boolean direction;
         if(openList.size() < K - 2){
-            direction = bf2(current, startChildren, endChildren);
+            if(jump){
+                direction = bf2(current, startChildren, endChildren);
+            } else{
+                direction = bf.jumpDirection(current, startChildren, endChildren);
+            }
             if(direction == FORWARD){
                 setCostsAndSort(startChildren);
             } else {
@@ -432,7 +443,7 @@ public class FillAndFind {
         int m = 4;
         int n = 4;
         int k = 5000;
-        long timeLimit = 60000000000L;
+        long timeLimit = 30000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
         /*initial = new int[][]{

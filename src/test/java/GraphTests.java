@@ -94,6 +94,8 @@ public class GraphTests {
         System.out.println("Time taken: " + time + " seconds");
     }
 
+
+
     @Test
     public void testingJIL1On4x4(){
         int N = 4;
@@ -498,7 +500,7 @@ public class GraphTests {
         int N = 4;
         int K = 5000;
         long time = 60000000000L;
-        int runs = 5;
+        int runs = 3;
         for(int i = 0; i < runs; i++){
             PuzzleMaker pm = new PuzzleMaker(M, N);
             int[][] initial = pm.generatePuzzle();
@@ -507,18 +509,40 @@ public class GraphTests {
             int result1 = ulb.solve(initial, time);
             System.out.println("Unidirectional got " + result1 + " with " + ulb.getExpanded() + " expansions");
             ulb = null;
-            /*
-            BidirLayeredBeam bf = new BidirLayeredBeam(M, N, K);
-            bf.setJumpHeuristic(1);
+
+            FillAndFind bf = new FillAndFind(M, N, K);
+            bf.setJumpPolicy(false);
             int result2 = bf.solve(initial, time);
-            System.out.println("Branch factor got " + result2 + " with " + bf.getExpanded() + " expansions");
+            System.out.println("Branch factor 1 got " + result2 + " with " + bf.getExpanded() + " expansions");
             bf = null;
 
-             */
             FillAndFind fAndF = new FillAndFind(M, N, K);
             int result3 = fAndF.solve(initial, time);
-            System.out.println("Fill and Find got " + result3 + " with " + fAndF.getExpanded() + " expansions");
+            System.out.println("Branch factor 2 got " + result3 + " with " + fAndF.getExpanded() + " expansions");
         }
+    }
+
+    @Test
+    public void testingSFBDSAgainstLayeredBeam(){ //failed test
+        int M = 4;
+        int N = 4;
+        int k = 5000;
+        PuzzleMaker pm = new PuzzleMaker(M, N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        long startTime = System.nanoTime();
+        SFBDSIDA solver = new SFBDSIDA(M, N);
+        int result1 = solver.solve(initial);
+        long time = (System.nanoTime() - startTime) / 1000000000L;
+        System.out.println("SFBDS Shortest path length found: " + result1);
+        System.out.println("Nodes expanded: " + solver.getExpanded());
+        System.out.println("Time taken: " + time + " seconds");
+        startTime = System.nanoTime();
+        FillAndFind fAndF = new FillAndFind(M, N, k);
+        int result2 = fAndF.solve(initial, time * 1000000000L);
+        time = (System.nanoTime() - startTime) / 1000000000L;
+        System.out.println("\nIn " + time + " seconds, Fill and Find got " + result2);
+        System.out.println("and it had " + fAndF.getExpanded() + " expansions");
     }
 
 }
