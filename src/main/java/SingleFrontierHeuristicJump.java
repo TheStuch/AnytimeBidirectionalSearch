@@ -156,19 +156,21 @@ class SingleFrontierHeuristicJump{
             }
             return;
         }
+        String dir = "";
         if(path == null || path.isEmpty()){
             path = new ArrayList<>();
             path.add(root.start);
         } else {
             if(Arrays.deepEquals(root.start, path.get(0))){ //if starts the same, it was a back change
                 path.add(root.end);
-                System.out.print("backwards ");
+                dir = "backwards ";
             }else {     //change was done at the front
                 path.add(0, root.start);
-                System.out.print("forwards ");
+                dir = "forwards ";
             }
         }
         printPath(root.parent, path);
+        System.out.print(dir);
     }
 
     // Custom comparator for priority queue

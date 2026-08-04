@@ -437,7 +437,7 @@ public class FillAndFind {
         int m = 5;
         int n = 4;
         int k = 5000;
-        long timeLimit = 30000000000L;
+        long timeLimit = 60000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
         /*initial = new int[][]{

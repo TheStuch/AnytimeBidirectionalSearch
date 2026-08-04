@@ -132,19 +132,21 @@ public class BiDFBnB {
             }
             return;
         }
+        String dir = "";
         if(path == null || path.isEmpty()){
             path = new ArrayList<>();
             path.add(root.start.matrix);
         } else {
             if(Arrays.deepEquals(root.start.matrix, path.get(0))){ //if starts the same, it was a back change
                 path.add(root.end.matrix);
-                System.out.print("backwards ");
+                dir = "backwards ";
             }else {     //change was done at the front
                 path.add(0, root.start.matrix);
-                System.out.print("forwards ");
+                dir = "forwards ";
             }
         }
         printPath(root.parent, path);
+        System.out.print(dir);
     }
 
     // Custom comparator for priority queue
