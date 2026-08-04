@@ -113,10 +113,10 @@ public class BiBnBHeuristicJump {
             int f = forward.get(i).f;
             int b = backward.get(i).f;
             if(f < b){
-                return  (i == 0 ? FORWARD: BACKWARD);
+                return  FORWARD;
             }
             if(b < f) {
-                return (i == 0 ? BACKWARD : FORWARD);
+                return BACKWARD;
             }
         }
         return !current.directionTo;
@@ -244,6 +244,7 @@ public class BiBnBHeuristicJump {
     *  generates all grandchildren created by expanding both nodes once
     * adds the grandchildren to the stack in sorted order and empties the input lists so they aren't added
     * if any children are answers, set them as answer and return
+    * algorithm was changed so this no longer works with it
      */
      JumpHeuristic simultaneous = (Node current, List<Node> forward, List<Node> backward) ->{
         List<Node> grandchildren = new ArrayList<>();
@@ -404,19 +405,21 @@ public class BiBnBHeuristicJump {
             }
             return;
         }
+        String dir = "";
         if(path == null || path.isEmpty()){
             path = new ArrayList<>();
             path.add(root.start.matrix);
         } else {
             if(Arrays.deepEquals(root.start.matrix, path.get(0))){ //if starts the same, it was a back change
                 path.add(root.end.matrix);
-                System.out.print("backwards ");
+                dir = "backwards ";
             }else {     //change was done at the front
                 path.add(0, root.start.matrix);
-                System.out.print("forwards ");
+                dir = "forwards ";
             }
         }
         printPath(root.parent, path);
+        System.out.print(dir);
     }
 
     public void printAnswer(){

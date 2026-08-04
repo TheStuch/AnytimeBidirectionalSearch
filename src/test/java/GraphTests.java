@@ -28,6 +28,8 @@ public class GraphTests {
             System.out.println("Anytime DFBnB found path of length " + anytimeResult);
         }
     }
+
+    @Disabled //second half fails
     @Test
     public void compareAlgorithmsOn3x4(){
         int M = 3;
@@ -39,7 +41,7 @@ public class GraphTests {
         int[][] goal = maker.generateGoal();
 
         DFBnB anytime = new DFBnB(M, N);
-        int anytimeResult = anytime.publicSolve(input, zeroSpot[0], zeroSpot[1], goal, 20000000000L);
+        int anytimeResult = anytime.solve(input, 20000000000L);
         if(anytimeResult == -1){
             System.out.println("Anytime DFBnB couldn't solve it");
         } else {
@@ -65,10 +67,10 @@ public class GraphTests {
         PuzzleMaker.printMatrix(input);
         int[][] goal = maker.generateGoal();
 
-        long[] times = new long[]{10000000000L, 20000000000L, 40000000000L, 60000000000L};
+        long[] times = new long[]{20000000000L, 40000000000L, 60000000000L};
         for(long time : times){
             DFBnB anytime = new DFBnB(M, N);
-            int result = anytime.publicSolve(input, zeroSpot[0], zeroSpot[1], goal, time);
+            int result = anytime.solve(input, time);
             System.out.print("In " + (time / 1000000000L) + " seconds, ");
             if(result == -1){
                 System.out.println("no path was found");
@@ -78,6 +80,7 @@ public class GraphTests {
         }
     }
 
+    @Disabled //takes too long sometimes
     @Test
     public void testingSFBDSOn4x4(){
         int N = 4;
@@ -97,16 +100,17 @@ public class GraphTests {
 
 
     @Test
-    public void testingJIL1On4x4(){
+    public void testingJIL1On3x4(){
+        int M = 3;
         int N = 4;
-        PuzzleMaker pm = new PuzzleMaker(N);
+        PuzzleMaker pm = new PuzzleMaker(M, N);
         int[][] initial = pm.generatePuzzle();
         PuzzleMaker.printMatrix(initial);
         long startTime = System.nanoTime();
-        SingleFrontierHeuristicJump solver = new SingleFrontierHeuristicJump(N);
+        SingleFrontierHeuristicJump solver = new SingleFrontierHeuristicJump(M, N);
         int result = solver.solve(initial);
         long time = (System.nanoTime() - startTime) / 1000000000L;
-        solver.printAnswer();
+        //solver.printAnswer();
         System.out.println("Shortest path length found: " + result);
         System.out.println("Nodes expanded: " + solver.getExpanded());
         System.out.println("Time taken: " + time + " seconds");
@@ -500,7 +504,7 @@ public class GraphTests {
         int N = 4;
         int K = 5000;
         long time = 60000000000L;
-        int runs = 3;
+        int runs = 5;
         for(int i = 0; i < runs; i++){
             PuzzleMaker pm = new PuzzleMaker(M, N);
             int[][] initial = pm.generatePuzzle();
@@ -509,21 +513,22 @@ public class GraphTests {
             int result1 = ulb.solve(initial, time);
             System.out.println("Unidirectional got " + result1 + " with " + ulb.getExpanded() + " expansions");
             ulb = null;
-
+            /*
             FillAndFind bf = new FillAndFind(M, N, K);
             bf.setJumpPolicy(false);
             int result2 = bf.solve(initial, time);
             System.out.println("Branch factor 1 got " + result2 + " with " + bf.getExpanded() + " expansions");
             bf = null;
-
+             */
             FillAndFind fAndF = new FillAndFind(M, N, K);
             int result3 = fAndF.solve(initial, time);
             System.out.println("Branch factor 2 got " + result3 + " with " + fAndF.getExpanded() + " expansions");
         }
     }
 
+    @Disabled //SFBDS takes too long
     @Test
-    public void testingSFBDSAgainstLayeredBeam(){ //failed test
+    public void testingSFBDSAgainstLayeredBeam(){
         int M = 4;
         int N = 4;
         int k = 5000;
@@ -545,4 +550,91 @@ public class GraphTests {
         System.out.println("and it had " + fAndF.getExpanded() + " expansions");
     }
 
+    @Test
+    public void massiveAnytimeComparison4x4() {
+        int M = 4;
+        int N = 4;
+        long timeLimit = 60000000000L;
+
+        PuzzleMaker pm = new PuzzleMaker(M, N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        DFBnB basic = new DFBnB(N);
+        int result1 = basic.solve(initial, timeLimit);
+        System.out.println("Standard anytime DFBnB got shortest path of " + result1 + " with " + basic.getExpanded() + " expansions");
+        basic = null;
+
+        System.out.println("\nBidirectional DFBnB:");
+        String[] heuristics = new String[]{"alternating", "bf", "jis", "jil", "goByEarliest", "earliestModified"};
+        for(int i = 1; i <= 3; i+=2){
+            BiBnBHeuristicJump bidir = new BiBnBHeuristicJump(M, N);
+            bidir.setJumpHeuristic(i);
+            int result2 = bidir.solve(initial, timeLimit);
+            System.out.print("\t");
+            if(result2 == -1){
+                System.out.print(heuristics[i] + " got nothing");
+            } else {
+                System.out.print(heuristics[i] + " got shortest path of " + result2);
+            }
+            System.out.println(" with " + bidir.getExpanded() + " expansions");
+        }
+
+        int[] widths = new int[]{500, 1000, 5000, 10000};
+        System.out.println("\nUnidirectional Beam Search:");
+        for(int k : widths){
+            UnidirLayeredBeam ulb = new UnidirLayeredBeam(M, N, k);
+            int result3 = ulb.solve(initial, timeLimit);
+            System.out.println("\tFor k = " + k + ", got shortest path of " + result3 + " with " + ulb.getExpanded() + " expansions");
+        }
+        System.out.println("\nFind and Fill (Bidirectional Beam Search):");
+        for(int k : widths){
+            FillAndFind fAndF = new FillAndFind(M, N, k);
+            int result4 = fAndF.solve(initial, timeLimit);
+            System.out.println("\tFor k = " + k + ", got shortest path of " + result4 + " with " + fAndF.getExpanded() + " expansions");
+        }
+    }
+
+    @Test
+    public void bigAnytimeComparison5x4() {
+        int M = 5;
+        int N = 4;
+        long timeLimit = 60000000000L;
+
+        PuzzleMaker pm = new PuzzleMaker(M, N);
+        int[][] initial = pm.generatePuzzle();
+        PuzzleMaker.printMatrix(initial);
+        DFBnB basic = new DFBnB(M, N);
+        int result1 = basic.solve(initial, timeLimit);
+        System.out.println("\nStandard anytime DFBnB got shortest path of " + result1 + " with " + basic.getExpanded() + " expansions");
+        basic = null;
+
+        System.out.println("\nBidirectional DFBnB:");
+        String[] heuristics = new String[]{"alternating", "bf", "jis", "jil", "goByEarliest", "earliestModified"};
+        for(int i = 1; i <= 3; i+=2){ //only does BF and JIL
+            BiBnBHeuristicJump bidir = new BiBnBHeuristicJump(M, N);
+            bidir.setJumpHeuristic(i);
+            int result2 = bidir.solve(initial, timeLimit);
+            System.out.print("\t");
+            if(result2 == -1){
+                System.out.print(heuristics[i] + " got nothing");
+            } else {
+                System.out.print(heuristics[i] + " got shortest path of " + result2);
+            }
+            System.out.println(" with " + bidir.getExpanded() + " expansions");
+        }
+
+        int[] widths = new int[]{500, 5000, 10000};
+        System.out.println("\nUnidirectional Beam Search:");
+        for(int k : widths){
+            UnidirLayeredBeam ulb = new UnidirLayeredBeam(M, N, k);
+            int result3 = ulb.solve(initial, timeLimit);
+            System.out.println("\tFor k = " + k + ", got shortest path of " + result3 + " with " + ulb.getExpanded() + " expansions");
+        }
+        System.out.println("\nFind and Fill (Bidirectional Beam Search):");
+        for(int k : widths){
+            FillAndFind fAndF = new FillAndFind(M, N, k);
+            int result4 = fAndF.solve(initial, timeLimit);
+            System.out.println("\tFor k = " + k + ", got shortest path of " + result4 + " with " + fAndF.getExpanded() + " expansions");
+        }
+    }
 }

@@ -382,11 +382,7 @@ public class BidirLayeredBeam {
         endChildren.sort(comp);
 
         boolean direction;
-        if(openList.size() < K - 2){
-            direction = bf.jumpDirection(current, startChildren, endChildren);
-        } else{
-            direction = heuristic.jumpDirection(current, startChildren, endChildren); //line that decides jump
-        }
+        direction = heuristic.jumpDirection(current, startChildren, endChildren); //line that decides jump
         Stack<Node> others = new Stack<>();
         if(direction == FORWARD){
             //startChildren.sort(weighted);

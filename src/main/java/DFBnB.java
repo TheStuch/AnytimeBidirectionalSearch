@@ -147,13 +147,6 @@ class DFBnB{
         }
         return ans.level;
     }
-    public int publicSolve(int[][] initial, int x, int y, int[][] goal, long timeLimit){
-        Node ans = solve(initial, x, y, goal, timeLimit);
-        if(ans == null){
-            return -1;
-        }
-        return ans.level;
-    }
 
     // Function to solve the puzzle using Branch and Bound
     private Node solve(int[][] initial, int x, int y, int[][] goal, long timeLimit) {
@@ -166,9 +159,6 @@ class DFBnB{
         while (!stack.isEmpty() && System.nanoTime() - startTime < timeLimit){
             Node current = stack.pop();
             findShortestPathToEnd(current);
-        }
-        if(answer != null){
-            //System.out.println("shortest: " + answer.level);
         }
         return answer;
     }

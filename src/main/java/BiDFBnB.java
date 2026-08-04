@@ -272,7 +272,7 @@ public class BiDFBnB {
         // Initial configuration
         int m = 3;
         int n = 4;
-        long timeLimit = 90000000000L;
+        long timeLimit = 30000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
        /*initial = new int[][]{

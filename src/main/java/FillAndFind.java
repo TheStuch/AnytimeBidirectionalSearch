@@ -17,7 +17,6 @@ public class FillAndFind {
     JumpHeuristic heuristic;
     int[][] initial;
     int[][] goal;
-    boolean jump = true;
 
 
     public FillAndFind(int m, int n, int k){
@@ -65,7 +64,7 @@ public class FillAndFind {
             if(child.x1 == 0 || child.x1 == M-1){
                 f++;
             }
-            if(child.y1 == 0 || child.x1 == N-1){
+            if(child.y1 == 0 || child.y1 == N-1){
                 f++;
             }
         }
@@ -73,7 +72,7 @@ public class FillAndFind {
              if(child.x2 == 0 || child.x2 == M-1){
                  b++;
              }
-             if(child.y2 == 0 || child.x2 == N-1){
+             if(child.y2 == 0 || child.y2 == N-1){
                  b++;
              }
          }
@@ -129,10 +128,6 @@ public class FillAndFind {
     }
     boolean withinTimeLimit(){
         return (System.nanoTime() - startTime) < timeLimit;
-    }
-
-    public void setJumpPolicy(boolean b) {
-        jump = b;
     }
 
     class Node{
@@ -268,6 +263,8 @@ public class FillAndFind {
         this.initial = initial;
         this.goal = goal;
         Node root = new Node(initial, goal, 0, null, x, y, M - 1, N - 1);
+        root.directionTo = BACKWARD;
+        root.calculateCost();
         seenNodes.put(root, 0);
         if(x != 0 && x != M - 1 && y != 0 && y != N - 1){ //start in the middle
             putForwardChildrenInList(root);
@@ -305,6 +302,7 @@ public class FillAndFind {
 
                 Node child = new Node(newMat, current.end, current.level + 1, current, newX, newY, current.x2, current.y2);
                 child.directionTo = FORWARD;
+                child.calculateCost();
                 seenNodes.put(child, child.level);
                 openList.add(child);
             }
@@ -312,7 +310,7 @@ public class FillAndFind {
     }
 
     private void findShortestPathToEnd(Node current) {
-        if (current.f > limit || (seenNodes.containsKey(current) && seenNodes.get(current) < current.level)) { //base case: prune if guaranteed suboptimal
+        if (current.f >= limit || (seenNodes.containsKey(current) && seenNodes.get(current) < current.level)) { //base case: prune if guaranteed suboptimal
             return;
         }
         if (current.cost == 0) { //base case: found solution
@@ -370,11 +368,7 @@ public class FillAndFind {
 
         boolean direction;
         if(openList.size() < K - 2){
-            if(jump){
-                direction = bf2(current, startChildren, endChildren);
-            } else{
-                direction = bf.jumpDirection(current, startChildren, endChildren);
-            }
+            direction = bf2(current, startChildren, endChildren);
             if(direction == FORWARD){
                 setCostsAndSort(startChildren);
             } else {
@@ -440,7 +434,7 @@ public class FillAndFind {
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 4;
+        int m = 5;
         int n = 4;
         int k = 5000;
         long timeLimit = 30000000000L;

@@ -6,6 +6,11 @@ class StandardBnB{
     final int M;
     final int N;
 
+    /**
+     *
+     * @param m height of the puzzle grid
+     * @param n width of the puzzle matrix
+     */
     public StandardBnB(int m, int n){
         M = m;
         N = n;
@@ -94,7 +99,15 @@ class StandardBnB{
         }
     };
 
-    // Function to solve the puzzle using Branch and Bound
+
+    /**
+     * algorithm to solve puzzle using A*
+     * @param initial the input matrix
+     * @param x depth of the empty slot in the input
+     * @param y how far right the empty slot is in the input
+     * @param goal what the puzzle should look like at the end
+     * @return
+     */
      int solve(int[][] initial, int x, int y, int[][] goal) {
          MinHeapImpl<Node> pq = new MinHeapImpl<Node>(comp);
         Node root = new Node(initial, x, y, 0, null);
