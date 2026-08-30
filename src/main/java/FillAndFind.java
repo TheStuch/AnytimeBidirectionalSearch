@@ -434,10 +434,10 @@ public class FillAndFind {
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 5;
+        int m = 4;
         int n = 4;
         int k = 5000;
-        long timeLimit = 60000000000L;
+        long timeLimit = 20000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
         /*initial = new int[][]{
