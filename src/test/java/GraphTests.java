@@ -637,4 +637,69 @@ public class GraphTests {
             System.out.println("\tFor k = " + k + ", got shortest path of " + result4 + " with " + fAndF.getExpanded() + " expansions");
         }
     }
+
+    @Test
+    public void rectangleSearchOptimalityTest(){
+        int M = 4;
+        int N = 3;
+        int runs = 5;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            BidirLayeredBeam blb = new BidirLayeredBeam(M, N, 10);
+            int expected = blb.solve(initial);
+            RectangleSearch rs = new RectangleSearch(M, N);
+            int actual = rs.solve(initial);
+            assertEquals(expected, actual);
+            System.out.println("success");
+        }
+    }
+
+    @Test
+    public void testRectangleSearch5x5(){
+        int M = 5;
+        int N = 5;
+        int runs = 10;
+        long timeLimit = 5000000000L;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            PuzzleMaker.printMatrix(initial);
+            RectangleSearch rs = new RectangleSearch(M, N);
+            int result = rs.solve(initial, timeLimit);
+            System.out.println("Found result of " + result);
+        }
+    }
+    @Test
+    public void testRectangleSearch6x6(){
+        int M = 6;
+        int N = 6;
+        int runs = 5;
+        long timeLimit = 60000000000L;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            PuzzleMaker.printMatrix(initial);
+            RectangleSearch rs = new RectangleSearch(M, N);
+            int result = rs.solve(initial, timeLimit);
+            System.out.println("Found result of " + result);
+        }
+    }
+
+    @Test
+    public void testRectangleSearch7x7(){
+        int M = 7;
+        int N = 7;
+        int B = 1;
+        int runs = 5;
+        long timeLimit = 30000000000L;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            PuzzleMaker.printMatrix(initial);
+            RectangleSearch rs = new RectangleSearch(M, N, B);
+            int result = rs.solve(initial, timeLimit);
+            System.out.println("Found result of " + result);
+        }
+    }
 }
