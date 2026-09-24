@@ -223,7 +223,7 @@ class RectangleSearch{
                 limit = level;
                 //System.out.println("Answer of length " + level + " found!");
                 if(answer == null){
-                    System.out.println("Initial answer of length " + level + " found after " + ((System.nanoTime() - startTime)/ 1000000000L) + " seconds");
+                    //System.out.println("Initial answer of length " + level + " found after " + ((System.nanoTime() - startTime)/ 1000000000L) + " seconds");
                 }
                 answer = current;
                 layer.next = null;
@@ -269,10 +269,10 @@ class RectangleSearch{
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 5;
-        int n = 5;
+        int m = 6;
+        int n = 6;
         int b = 1;
-        long time = 60000000000L;
+        long time = 30000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
         /*

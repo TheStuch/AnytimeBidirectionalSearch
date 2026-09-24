@@ -123,4 +123,32 @@ public class PuzzleMaker {
         }
     }
 
+    public static int calculateCost(int[][] mat) {
+        if(mat == null || mat.length == 0 || mat[0].length == 0){
+            return -1;
+        }
+        int dist = 0;
+        int M = mat.length;
+        int N = mat[0].length;
+        // For each tile in the current board
+        for (int i = 0; i < M; i++) {
+            for (int j = 0; j < N; j++) {
+
+                int val = mat[i][j] - 1;
+
+                // Skip the blank tile
+                if (val == -1) continue;
+
+                // Compute the tile's goal position
+                int goalX = val / N;
+                int goalY = val % N;
+
+                // Add Manhattan distance
+                dist += Math.abs(i - goalX) + Math.abs(j - goalY);
+            }
+        }
+
+        return dist;
+    }
+
 }

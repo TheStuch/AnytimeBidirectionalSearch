@@ -702,4 +702,62 @@ public class GraphTests {
             System.out.println("Found result of " + result);
         }
     }
+
+    @Test
+    public void bidirRectangleSearchOptimalityTest(){
+        int M = 4;
+        int N = 3;
+        int runs = 5;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            RectangleSearch rs = new RectangleSearch(M, N);
+            int expected = rs.solve(initial);
+            BidirRectangle brs = new BidirRectangle(M, N);
+            int actual = brs.solve(initial);
+            assertEquals(expected, actual);
+        }
+    }
+
+    @Test
+    public void compareRectangleSearchesShort6x6Test(){
+        int M = 6;
+        int N = 6;
+        long timeLimit = 5000000000L;
+        int runs = 10;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            //PuzzleMaker.printMatrix(initial);
+            System.out.println("Case " + (i+1) + ":");
+            RectangleSearch rs = new RectangleSearch(M, N);
+            int result1 = rs.solve(initial, timeLimit);
+            BidirRectangle brs = new BidirRectangle(M, N);
+            int result2 = brs.solve(initial, timeLimit);
+            System.out.println("Unidirectional got " + result1);
+            System.out.println("Bidirectional got " + result2);
+            System.out.println();
+        }
+    }
+
+    @Test
+    public void compareRectangleSearches8x8Test(){
+        int M = 8;
+        int N = 8;
+        long timeLimit = 30000000000L;
+        int runs = 10;
+        for(int i = 0; i < runs; i++){
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            //PuzzleMaker.printMatrix(initial);
+            System.out.println("Case " + (i+1) + "(dist = " + PuzzleMaker.calculateCost(initial) + "):");
+            RectangleSearch rs = new RectangleSearch(M, N);
+            int result1 = rs.solve(initial, timeLimit);
+            BidirRectangle brs = new BidirRectangle(M, N);
+            int result2 = brs.solve(initial, timeLimit);
+            System.out.println("Unidirectional got " + result1);
+            System.out.println("Bidirectional got " + result2);
+            System.out.println();
+        }
+    }
 }
