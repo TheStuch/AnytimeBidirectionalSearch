@@ -723,13 +723,14 @@ public class GraphTests {
     public void compareRectangleSearchesShort6x6Test(){
         int M = 6;
         int N = 6;
-        long timeLimit = 5000000000L;
+        long timeLimit = 10000000000L;
         int runs = 10;
         for(int i = 0; i < runs; i++){
             PuzzleMaker pm = new PuzzleMaker(M, N);
             int[][] initial = pm.generatePuzzle();
             //PuzzleMaker.printMatrix(initial);
-            System.out.println("Case " + (i+1) + ":");
+            //System.out.println("Case " + (i+1) + ":");
+            System.out.println("Case " + (i+1) + "(dist = " + PuzzleMaker.calculateCost(initial) + "):");
             RectangleSearch rs = new RectangleSearch(M, N);
             int result1 = rs.solve(initial, timeLimit);
             BidirRectangle brs = new BidirRectangle(M, N);
@@ -753,10 +754,12 @@ public class GraphTests {
             System.out.println("Case " + (i+1) + "(dist = " + PuzzleMaker.calculateCost(initial) + "):");
             RectangleSearch rs = new RectangleSearch(M, N);
             int result1 = rs.solve(initial, timeLimit);
+            int expanded1 = rs.getExpanded();
             BidirRectangle brs = new BidirRectangle(M, N);
             int result2 = brs.solve(initial, timeLimit);
-            System.out.println("Unidirectional got " + result1);
-            System.out.println("Bidirectional got " + result2);
+            int expanded2 = brs.getExpanded();
+            System.out.println("Unidirectional got " + result1 + " with " + expanded1 + " expansions");
+            System.out.println("Bidirectional got " + result2 + " with " + expanded2 + " expansions");
             System.out.println();
         }
     }

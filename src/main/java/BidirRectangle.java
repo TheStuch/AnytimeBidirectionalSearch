@@ -6,6 +6,7 @@ class BidirRectangle{
      int M = 1;
      int N = 1;
     final int B;
+    int C = 1;
     final static boolean FORWARD = true;
     final static boolean BACKWARD = false;
     Layer root = null;
@@ -317,7 +318,7 @@ class BidirRectangle{
         }
         while(System.nanoTime() - startTime < timeLimit && root != null){ //keep looking to find answers
             for(Layer current = root; current != null; current = current.next){
-                findShortestPathToEnd(current, 1);
+                findShortestPathToEnd(current, C);
             }
         }
         return answer;
@@ -346,10 +347,14 @@ class BidirRectangle{
             }
             if (current.cost == 0) { //base case: found solution
                 limit = level;
-                //System.out.println("Answer of length " + level + " found!");
+                /*int timeTaken = (int) ((System.nanoTime() - startTime) / 1000000L);
+                System.out.println("Answer of length " + level + " found at " + timeTaken + " milliseconds (" + getExpanded() + " expansions)");
+
                 if(answer == null){
                     //System.out.println("Initial answer of length " + level + " found after " + ((System.nanoTime() - startTime)/ 1000000000L) + " seconds");
                 }
+
+                 */
                 answer = current;
                 layer.next = null;
                 layer.openList = new PriorityQueue<>(comp);
@@ -432,10 +437,10 @@ class BidirRectangle{
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 6;
-        int n = 6;
+        int m = 5;
+        int n = 5;
         int b = 1;
-        long time = 30000000000L;
+        long time = 10000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
         /*
@@ -471,7 +476,6 @@ class BidirRectangle{
         } else{
             System.out.println("\nShortest Path length found: " + solver.limit);
             //solver.printAnswer();
-            System.out.println("\nShortest Path length found: " + solver.limit);
         }
         System.out.println("Nodes expanded: " + solver.expanded);
     }
