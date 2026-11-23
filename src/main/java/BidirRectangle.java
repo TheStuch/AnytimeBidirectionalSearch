@@ -11,6 +11,8 @@ class BidirRectangle{
     final static boolean BACKWARD = false;
     Layer root = null;
     Node answer = null;
+    List<List<Integer>> initialPath = null;
+    List<List<Integer>> finalPath = null;
     int limit = Integer.MAX_VALUE;
     long startTime = 0L;
     long timeLimit = Long.MAX_VALUE;
@@ -266,6 +268,62 @@ class BidirRectangle{
         System.out.print(dir);
     }
 
+    private List<List<Integer>> getPath(Node root) {
+        if (root == null) {
+            return null;
+        }
+        List<List<Integer>> path = new ArrayList<>();
+        int[][] front = root.start;
+        path.add(compressBoard(front));
+
+        Node current = root.parent;
+        while (current != null){
+            if(Arrays.deepEquals(current.start, front)){ //if front is matching, extend in back
+                path.add(compressBoard(current.end));
+            } else {    //if front is different and getting added to front
+                front = current.start;
+                path.add(0, compressBoard(current.start));
+            }
+            current = current.parent;
+        }
+        return path;
+    }
+
+    private List<Integer> compressBoard(int[][] board){
+        assert board != null;
+        List<Integer> compressed = new LinkedList<>();
+        for(int[] row : board){
+            for(int val : row){
+                compressed.add(val);
+            }
+        }
+        return compressed;
+    }
+
+    private int countOverlap(List<List<Integer>> initialPath, List<List<Integer>> finalPath){
+        Set<List<Integer>> optimized = new HashSet<>();
+        optimized.addAll(finalPath);
+        int overlap = 0;
+        for (List<Integer> state : initialPath){
+            if(optimized.contains(state)){
+                overlap++;
+                //System.out.println(state);
+            }
+        }
+        return overlap;
+    }
+
+    public int countOverlap(){
+        if(answer == null){
+            return -1;
+        }
+        int overlap = countOverlap(initialPath, finalPath);
+        System.out.println("First path found had length " + initialPath.size());
+        System.out.println("Final path found had length " + finalPath.size());
+        System.out.println("They had an overlap of " + overlap);
+        return overlap;
+    }
+
     public void printAnswer(){
         if(answer == null){
             System.out.println("no answer found");
@@ -318,9 +376,10 @@ class BidirRectangle{
         }
         while(System.nanoTime() - startTime < timeLimit && root != null){ //keep looking to find answers
             for(Layer current = root; current != null; current = current.next){
-                findShortestPathToEnd(current, C);
+                findShortestPathToEnd(current, limit);
             }
         }
+        finalPath = getPath(answer);
         return answer;
     }
 
@@ -347,17 +406,17 @@ class BidirRectangle{
             }
             if (current.cost == 0) { //base case: found solution
                 limit = level;
-                /*int timeTaken = (int) ((System.nanoTime() - startTime) / 1000000L);
+                /*
+                int timeTaken = (int) ((System.nanoTime() - startTime) / 1000000L);
                 System.out.println("Answer of length " + level + " found at " + timeTaken + " milliseconds (" + getExpanded() + " expansions)");
-
-                if(answer == null){
-                    //System.out.println("Initial answer of length " + level + " found after " + ((System.nanoTime() - startTime)/ 1000000000L) + " seconds");
-                }
-
                  */
+                if (answer == null){
+                    initialPath = getPath(current);
+                }
                 answer = current;
                 layer.next = null;
                 layer.openList = new PriorityQueue<>(comp);
+
                 return;
             }
             seen.put(current, level);
@@ -434,15 +493,17 @@ class BidirRectangle{
     interface JumpHeuristic{
         boolean jumpDirection(Node current, List<Node> forward, List<Node> backward);
     }
+
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 5;
-        int n = 5;
+        int m = 4;
+        int n = 4;
         int b = 1;
-        long time = 10000000000L;
+        long time = 30000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
         int[][] initial = pm.generatePuzzle();
+        printMatrix(initial);
         /*
         initial = new int[][]{
                 {2, 0, 5},
@@ -470,13 +531,18 @@ class BidirRectangle{
         BidirRectangle solver = new BidirRectangle(m, n, b);
 
         int result = solver.solve(initial, time);
+        /*
         if(result == -1){
             System.out.println("solution couldn't be found for");
             System.out.println(Arrays.deepToString(initial));
         } else{
             System.out.println("\nShortest Path length found: " + solver.limit);
-            //solver.printAnswer();
+            solver.printAnswer();
         }
         System.out.println("Nodes expanded: " + solver.expanded);
+         */
+        if(result > 0){
+            solver.countOverlap();
+        }
     }
 }

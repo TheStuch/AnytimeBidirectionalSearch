@@ -8,6 +8,8 @@ class RectangleSearch{
     final int B;
     Layer root = null;
     Node answer = null;
+    List<List<Integer>> initialPath;
+    List<List<Integer>> finalPath;
     int limit = Integer.MAX_VALUE;
     long startTime = 0L;
     long timeLimit = Long.MAX_VALUE;
@@ -145,6 +147,50 @@ class RectangleSearch{
         printPath(answer);
     }
 
+    private List<List<Integer>> getPath(Node root) {
+        if (root == null) {
+            return new ArrayList<>();
+        }
+        List<List<Integer>> path = getPath(root.parent);
+        path.add(compressBoard(root.mat));
+        return path;
+    }
+
+    private List<Integer> compressBoard(int[][] board){
+        assert board != null;
+        List<Integer> compressed = new LinkedList<>();
+        for(int[] row : board){
+            for(int val : row){
+                compressed.add(val);
+            }
+        }
+        return compressed;
+    }
+
+    private int countOverlap(List<List<Integer>> initialPath, List<List<Integer>> finalPath){
+        Set<List<Integer>> optimized = new HashSet<>();
+        optimized.addAll(finalPath);
+        int overlap = 0;
+        for (List<Integer> state : initialPath){
+            if(optimized.contains(state)){
+                overlap++;
+                //System.out.println(state);
+            }
+        }
+        return overlap;
+    }
+
+    public int countOverlap(){
+        if(answer == null){
+            return -1;
+        }
+        int overlap = countOverlap(initialPath, finalPath);
+        System.out.println("First path found had length " + initialPath.size());
+        System.out.println("Final path found had length " + finalPath.size());
+        System.out.println("They had an overlap of " + overlap);
+        return overlap;
+    }
+
     public int getExpanded(){
         return expanded;
     }
@@ -199,6 +245,7 @@ class RectangleSearch{
                 findShortestPathToEnd(current, 1);
             }
         }
+        finalPath = getPath(answer);
         return answer;
     }
 
@@ -223,6 +270,7 @@ class RectangleSearch{
                 limit = level;
                 //System.out.println("Answer of length " + level + " found!");
                 if(answer == null){
+                    initialPath = getPath(current);
                     //System.out.println("Initial answer of length " + level + " found after " + ((System.nanoTime() - startTime)/ 1000000000L) + " seconds");
                 }
                 answer = current;
@@ -269,8 +317,8 @@ class RectangleSearch{
     // Driver Code
     public static void main(String[] args) {
         // Initial configuration
-        int m = 6;
-        int n = 6;
+        int m = 4;
+        int n = 4;
         int b = 1;
         long time = 30000000000L;
         PuzzleMaker pm = new PuzzleMaker(m, n);
@@ -311,5 +359,6 @@ class RectangleSearch{
             System.out.println("\nShortest Path length found: " + solver.limit);
         }
         System.out.println("Nodes expanded: " + solver.expanded);
+        solver.countOverlap();
     }
 }

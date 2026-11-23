@@ -707,7 +707,7 @@ public class GraphTests {
     public void bidirRectangleSearchOptimalityTest(){
         int M = 4;
         int N = 3;
-        int runs = 5;
+        int runs = 10;
         for(int i = 0; i < runs; i++){
             PuzzleMaker pm = new PuzzleMaker(M, N);
             int[][] initial = pm.generatePuzzle();
@@ -761,6 +761,28 @@ public class GraphTests {
             System.out.println("Unidirectional got " + result1 + " with " + expanded1 + " expansions");
             System.out.println("Bidirectional got " + result2 + " with " + expanded2 + " expansions");
             System.out.println();
+        }
+    }
+
+    //for each algorithm, sees how much the first path found overlaps with the best path it discovers in the end
+    @Test
+    public void compareOverlapOfPathImprovement(){
+        int M = 6;
+        int N = 6;
+        long time = 30000000000L;
+        int runs = 10;
+        for(int i = 0; i < runs; i++){
+            System.out.println("\nCase " + (i+1) + ":");
+            PuzzleMaker pm = new PuzzleMaker(M, N);
+            int[][] initial = pm.generatePuzzle();
+            RectangleSearch rs = new RectangleSearch(M, N);
+            int expected = rs.solve(initial, time);
+            System.out.println("Unidirectional:");
+            rs.countOverlap();
+            BidirRectangle brs = new BidirRectangle(M, N);
+            int actual = brs.solve(initial, time);
+            System.out.println("\nBidirectional:");
+            brs.countOverlap();
         }
     }
 }
